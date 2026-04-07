@@ -1,124 +1,192 @@
-// Configuración - Asegúrate que apunte al backend
-const API_URL = 'http://localhost:3000/api';  // ← Este es el backend
+// ============================================
+// CONFIGURACIÓN
+// ============================================
+const API_URL = 'http://localhost:8080/api';
 
-// Elementos del DOM
+// ============================================
+// ELEMENTOS DEL DOM
+// ============================================
 const formProducto = document.getElementById('form-producto');
 const btnCancelar = document.getElementById('btn-cancelar');
 const tbody = document.getElementById('tabla-productos');
 
-// Cargar productos al iniciar
+// ============================================
+// INICIALIZACIÓN
+// ============================================
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Frontend corriendo en:', window.location.href);
-    console.log('Conectando a backend en:', API_URL);
+    console.log('=== EL TORNILLO FELIZ ===');
+    console.log('📱 Frontend:', window.location.href);
+    console.log('🔗 Backend:', API_URL);
     cargarProductos();
-    formProducto.addEventListener('submit', guardarProducto);
-    btnCancelar.addEventListener('click', limpiarFormulario);
+    
+    if (formProducto) {
+        formProducto.addEventListener('submit', guardarProducto);
+    }
+    if (btnCancelar) {
+        btnCancelar.addEventListener('click', limpiarFormulario);
+    }
 });
 
-// Función para cargar productos desde el backend
+// ============================================
+// CARGAR PRODUCTOS (CON MAPEO CORRECTO)
+// ============================================
 async function cargarProductos() {
     try {
-        console.log('Cargando productos desde:', `${API_URL}/productos`);
+        console.log('🔄 Cargando productos...');
         
         const response = await fetch(`${API_URL}/productos`);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP ${response.status}`);
         }
         
         const productos = await response.json();
-        console.log('Productos cargados:', productos);
-        mostrarProductos(productos);
+        console.log('📦 Datos recibidos del backend:', productos);
+        
+        // Mapear los campos del backend a lo que espera el frontend
+        const productosMapeados = productos.map(prod => ({
+            codigo: prod.codigo,
+            nombre: prod.nombre,
+            cantidad: prod.cantidad,
+            precio: prod.precolventa || prod.precio || 0,  // ← Mapea precolventa a precio
+            stockMinimo: prod.stockInimano || prod.stockMinimo || 0,  // ← Mapea stockInimano a stockMinimo
+            bajostock: prod.bajostock || false
+        }));
+        
+        console.log('📋 Productos mapeados:', productosMapeados);
+        mostrarProductos(productosMapeados);
         
     } catch (error) {
-        console.error('Error detallado:', error);
-        tbody.innerHTML = `<tr><td colspan="7">
-            ❌ Error al cargar productos. 
-            ¿Está el backend corriendo en http://localhost:3000?
-            <br>
-            <small>Error: ${error.message}</small>
-        </td></tr>`;
+        console.error('❌ Error:', error);
+        mostrarErrorEnTabla(`
+            ❌ Error al cargar productos<br>
+            Backend: ${API_URL}<br>
+            Mensaje: ${error.message}
+        `);
     }
 }
 
-// Función para mostrar productos en la tabla
+// ============================================
+// MOSTRAR PRODUCTOS EN TABLA
+// ============================================
 function mostrarProductos(productos) {
+    if (!tbody) return;
+    
     if (productos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7">📦 No hay productos registrados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">📦 No hay productos registrados</td></tr>';
         return;
     }
     
     tbody.innerHTML = productos.map(producto => {
-        // Determinar estado según stock
-        const estado = producto.cantidad <= producto.stockMinimo 
-            ? '⚠️ Stock Bajo' 
-            : '✅ Normal';
+        // Calcular estado correctamente
+        let estado = '';
+        let estadoColor = '';
+        
+        if (producto.bajostock === true) {
+            estado = '⚠️ Stock Bajo';
+            estadoColor = 'orange';
+        } else if (producto.cantidad <= producto.stockMinimo) {
+            estado = '⚠️ Stock Bajo';
+            estadoColor = 'orange';
+        } else {
+            estado = '✅ Normal';
+            estadoColor = 'green';
+        }
+        
+        // Formatear precio correctamente
+        const precioFormateado = typeof producto.precio === 'number' 
+            ? `$${producto.precio.toLocaleString('es-CL')}` 
+            : `$${producto.precio || 0}`;
         
         return `
             <tr>
-                <td>${producto.codigo}</td>
+                <td><strong>${producto.codigo}</strong></td>
                 <td>${producto.nombre}</td>
                 <td>${producto.cantidad}</td>
-                <td>$${producto.precio}</td>
+                <td>${precioFormateado}</td>
                 <td>${producto.stockMinimo}</td>
-                <td>${estado}</td>
+                <td style="color: ${estadoColor}; font-weight: bold;">${estado}</td>
                 <td>
-                    <button onclick="editarProducto('${producto.codigo}')">✏️ Editar</button>
-                    <button onclick="eliminarProducto('${producto.codigo}')">🗑️ Eliminar</button>
+                    <button onclick="editarProducto('${producto.codigo}')" style="background: #17a2b8;">✏️ Editar</button>
+                    <button onclick="eliminarProducto('${producto.codigo}')" style="background: #dc3545;">🗑️ Eliminar</button>
                 </td>
             </tr>
         `;
     }).join('');
 }
 
-// Función para guardar producto
+// ============================================
+// GUARDAR PRODUCTO (CON CAMPOS CORRECTOS)
+// ============================================
 async function guardarProducto(event) {
     event.preventDefault();
     
-    const producto = {
-        codigo: document.getElementById('codigo').value.trim(),
-        nombre: document.getElementById('nombre').value.trim(),
-        cantidad: parseInt(document.getElementById('cantidad').value),
-        precio: parseFloat(document.getElementById('precio').value),
-        stockMinimo: parseInt(document.getElementById('stock-minimo').value)
-    };
+    // Obtener valores del formulario
+    const codigo = document.getElementById('codigo').value.trim();
+    const nombre = document.getElementById('nombre').value.trim();
+    const cantidad = parseInt(document.getElementById('cantidad').value);
+    const precio = parseFloat(document.getElementById('precio').value);
+    const stockMinimo = parseInt(document.getElementById('stock-minimo').value);
     
-    // Validaciones básicas
-    if (!producto.codigo || !producto.nombre) {
+    // Validaciones
+    if (!codigo || !nombre) {
         alert('⚠️ Código y nombre son obligatorios');
         return;
     }
     
+    if (isNaN(cantidad) || cantidad < 0) {
+        alert('⚠️ Cantidad debe ser un número válido');
+        return;
+    }
+    
+    if (isNaN(precio) || precio < 0) {
+        alert('⚠️ Precio debe ser un número válido');
+        return;
+    }
+    
+    // Crear objeto con los nombres de campos QUE ESPERA EL BACKEND
+    const producto = {
+        codigo: codigo,
+        nombre: nombre,
+        cantidad: cantidad,
+        precolventa: precio,        // ← El backend espera "precolventa"
+        stockInimano: stockMinimo,  // ← El backend espera "stockInimano"
+        fechagRestro: new Date().toISOString(),  // ← Fecha actual
+        bajostock: cantidad <= stockMinimo  // ← Calcular si está bajo stock
+    };
+    
+    console.log('📤 Enviando al backend:', producto);
+    
     try {
-        console.log('Guardando producto:', producto);
-        
         const response = await fetch(`${API_URL}/productos`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+            headers: { 
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(producto)
         });
         
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Error al guardar');
+            const errorText = await response.text();
+            throw new Error(`Error ${response.status}: ${errorText}`);
         }
         
-        const nuevoProducto = await response.json();
-        console.log('Producto guardado:', nuevoProducto);
+        const resultado = await response.json();
+        console.log('✅ Producto guardado:', resultado);
         
         alert('✅ Producto guardado exitosamente');
         limpiarFormulario();
-        cargarProductos(); // Recargar la lista
+        cargarProductos(); // Recargar lista
         
     } catch (error) {
-        console.error('Error:', error);
+        console.error('❌ Error al guardar:', error);
         alert('❌ Error al guardar: ' + error.message);
     }
 }
 
-// Función para eliminar producto
+// ============================================
+// ELIMINAR PRODUCTO
+// ============================================
 window.eliminarProducto = async function(codigo) {
     if (!confirm(`¿Estás seguro de eliminar el producto ${codigo}?`)) {
         return;
@@ -134,46 +202,55 @@ window.eliminarProducto = async function(codigo) {
         }
         
         alert('✅ Producto eliminado exitosamente');
-        cargarProductos(); // Recargar la lista
+        cargarProductos(); // Recargar lista
         
     } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Error al eliminar el producto');
+        console.error('❌ Error:', error);
+        alert('❌ Error al eliminar: ' + error.message);
     }
 };
 
-// Función para editar producto
+// ============================================
+// EDITAR PRODUCTO
+// ============================================
 window.editarProducto = async function(codigo) {
     try {
-        // Primero obtener el producto actual
+        // Obtener producto actual
         const response = await fetch(`${API_URL}/productos/${codigo}`);
-        const producto = await response.json();
+        const productoOriginal = await response.json();
+        
+        console.log('✏️ Editando producto:', productoOriginal);
         
         // Pedir nuevos valores
-        const nuevoNombre = prompt('Nuevo nombre:', producto.nombre);
-        if (!nuevoNombre) return;
+        const nuevoNombre = prompt('Nuevo nombre:', productoOriginal.nombre);
+        if (nuevoNombre === null) return;
         
-        const nuevaCantidad = prompt('Nueva cantidad:', producto.cantidad);
+        const nuevaCantidad = prompt('Nueva cantidad:', productoOriginal.cantidad);
         if (nuevaCantidad === null) return;
         
-        const nuevoPrecio = prompt('Nuevo precio:', producto.precio);
+        const nuevoPrecio = prompt('Nuevo precio:', productoOriginal.precolventa);
         if (nuevoPrecio === null) return;
         
-        const nuevoStockMinimo = prompt('Nuevo stock mínimo:', producto.stockMinimo);
+        const nuevoStockMinimo = prompt('Nuevo stock mínimo:', productoOriginal.stockInimano);
         if (nuevoStockMinimo === null) return;
         
+        // Crear objeto actualizado con los campos del backend
         const productoActualizado = {
-            ...producto,
+            ...productoOriginal,
             nombre: nuevoNombre,
             cantidad: parseInt(nuevaCantidad),
-            precio: parseFloat(nuevoPrecio),
-            stockMinimo: parseInt(nuevoStockMinimo)
+            precolventa: parseFloat(nuevoPrecio),
+            stockInimano: parseInt(nuevoStockMinimo),
+            bajostock: parseInt(nuevaCantidad) <= parseInt(nuevoStockMinimo),
+            fechagRestro: new Date().toISOString()
         };
+        
+        console.log('📤 Enviando actualización:', productoActualizado);
         
         const updateResponse = await fetch(`${API_URL}/productos/${codigo}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
+            headers: { 
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(productoActualizado)
         });
@@ -183,19 +260,32 @@ window.editarProducto = async function(codigo) {
         }
         
         alert('✅ Producto actualizado exitosamente');
-        cargarProductos(); // Recargar la lista
+        cargarProductos(); // Recargar lista
         
     } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Error al editar el producto');
+        console.error('❌ Error:', error);
+        alert('❌ Error al editar: ' + error.message);
     }
 };
 
-// Función para limpiar formulario
+// ============================================
+// LIMPIAR FORMULARIO
+// ============================================
 function limpiarFormulario() {
     document.getElementById('codigo').value = '';
     document.getElementById('nombre').value = '';
     document.getElementById('cantidad').value = '0';
     document.getElementById('precio').value = '0';
     document.getElementById('stock-minimo').value = '5';
+}
+
+// ============================================
+// MOSTRAR ERROR
+// ============================================
+function mostrarErrorEnTabla(mensaje) {
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px; color: red;">
+            ${mensaje}
+        </td></tr>`;
+    }
 }
