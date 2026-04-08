@@ -56,7 +56,7 @@ function mostrarProductos(productos) {
     if (!tbody) return;
     
     if (productos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7">📦 No hay productos registrados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="loading">No hay productos registrados</td></tr>';
         return;
     }
     
@@ -66,21 +66,21 @@ function mostrarProductos(productos) {
         const cantidad = producto.cantidad || 0;
         const bajoStock = producto.bajoStock || false;
         
-        const estado = (bajoStock || cantidad <= stockMin) ? '⚠️ Stock Bajo' : '✅ Normal';
-        const estadoColor = (bajoStock || cantidad <= stockMin) ? 'orange' : 'green';
-        const precioFormateado = precio > 0 ? `$${precio.toLocaleString('es-CL')}` : '$0';
+        const estado = (bajoStock || cantidad <= stockMin) ? 'Stock Bajo' : 'Normal';
+        const estadoClass = (bajoStock || cantidad <= stockMin) ? 'badge-low' : 'badge-normal';
+        const precioFormateado = precio > 0 ? precio.toLocaleString('es-CL') : '0';
         
         return `
             <tr>
-                <td><strong>${producto.codigo || 'N/A'}</strong></td>
-                <td>${producto.nombre || 'N/A'}</td>
+                <td><span class="code">${producto.codigo || 'N/A'}</span></td>
+                <td><strong>${producto.nombre || 'N/A'}</strong></td>
                 <td>${cantidad}</td>
-                <td>${precioFormateado}</td>
+                <td class="price">$${precioFormateado}</td>
                 <td>${stockMin}</td>
-                <td style="color: ${estadoColor}; font-weight: bold;">${estado}</td>
+                <td><span class="badge ${estadoClass}">${estado}</span></td>
                 <td>
-                    <button onclick="editarProducto('${producto.id}')" style="background: #17a2b8; color: white; border: none; padding: 5px 10px; margin: 0 3px; border-radius: 4px; cursor: pointer;">✏️ Editar</button>
-                    <button onclick="eliminarProducto('${producto.id}')" style="background: #dc3545; color: white; border: none; padding: 5px 10px; margin: 0 3px; border-radius: 4px; cursor: pointer;">🗑️ Eliminar</button>
+                    <button class="action-btn action-edit" onclick="editarProducto('${producto.id}')">Editar</button>
+                    <button class="action-btn action-delete" onclick="eliminarProducto('${producto.id}')">Eliminar</button>
                 </td>
             </tr>
         `;
