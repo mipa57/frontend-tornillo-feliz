@@ -1,70 +1,85 @@
 <!DOCTYPE html>
 <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>El Tornillo Feliz - Sistema de Inventario</title>
-        <link rel="stylesheet" href="css/styles.css">
-        
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Tornillo Feliz - Sistema de Inventario</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
 <body>
+    <div class="container">
+        <div class="card">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-icon">🔧</div>
+                <h1>El Tornillo <span>Feliz</span></h1>
+            </div>
 
-    <h1># El Tornillo Feliz</h1>
+            <!-- Formulario -->
+            <div class="form-section">
+                <h2 class="section-title">Agregar Producto</h2>
+                <form id="form-producto">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Código</label>
+                            <input type="text" id="codigo" placeholder="Ej: TOR-001" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre</label>
+                            <input type="text" id="nombre" placeholder="Ej: Martillo" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Cantidad</label>
+                            <input type="number" id="cantidad" value="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Precio Venta ($)</label>
+                            <input type="number" id="precio" step="0.01" value="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Stock Mínimo</label>
+                            <input type="number" id="stock-minimo" value="5" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">💾 Guardar Producto</button>
+                        <button type="button" id="btn-cancelar" class="btn btn-secondary">🗑️ Cancelar</button>
+                    </div>
+                </form>
+            </div>
 
-    <h2>Agregar Producto</h2>
-
-    <form id="form-producto">
-        <div>
-            Código: 
-            <input type="text" id="codigo" placeholder="Ej: TOR-001">
+            <!-- Tabla -->
+            <div class="table-section">
+                <h2 class="table-title">Inventario de Productos</h2>
+                <div id="mensaje-error" class="alert alert-error" style="display: none;"></div>
+                <div id="mensaje-exito" class="alert alert-success" style="display: none;"></div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Cantidad</th>
+                                <th>Precio</th>
+                                <th>Stock Mínimo</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-productos">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 3rem;">
+                                    <div class="loading"></div>
+                                    <p style="margin-top: 1rem; color: #6b7280;">Cargando productos...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-
-        <div>
-            Nombre: 
-            <input type="text" id="nombre" placeholder="Ej: Martillo">
-        </div>
-
-        <div>
-            Cantidad: 
-            <input type="number" id="cantidad" value="0">
-        </div>
-
-        <div>
-            Precio Venta ($): 
-            <input type="number" id="precio" step="0.01" value="0">
-        </div>
-
-        <div>
-            Stock Mínimo: 
-            <input type="number" id="stock-minimo" value="5">
-        </div>
-
-        <button type="submit">Guardar Producto</button>
-        <button type="button" id="btn-cancelar">Cancelar</button>
-    </form>
-
-    <hr>
-
-    <h2>Inventario de Productos</h2>
-
-    <table border="1">
-        <thead>
-            <tr>
-                <th>CÓDIGO</th>
-                <th>NOMBRE</th>
-                <th>CANTIDAD</th>
-                <th>PRECIO</th>
-                <th>STOCK MÍNIMO</th>
-                <th>ESTADO</th>
-                <th>ACCIONES</th>
-            </tr>
-        </thead>
-        <tbody id="tabla-productos">
-            <tr>
-                <td colspan="7">Cargando productos...</td>
-            </tr>
-        </tbody>
-    </table>
+    </div>
 
     <script src="js/main.js"></script>
 </body>
