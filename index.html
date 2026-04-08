@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>El Tornillo Feliz - Inventario con Unidades</title>
+    <title>El Tornillo Feliz - Login e Inventario</title>
     <style>
         * {
             margin: 0;
@@ -21,35 +21,149 @@
             padding: 2rem;
         }
 
-        /* Ventana principal estilo industrial */
-        .inventario-window {
-            max-width: 1500px;
+        /* Pantalla de login */
+        .login-container, .inventario-window {
+            max-width: 500px;
             width: 100%;
             background: #f4f2ef;
             border-radius: 2rem;
-            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.45);
             overflow: hidden;
+            transition: all 0.2s;
         }
 
-        .header {
+        .inventario-window {
+            max-width: 1500px;
+            display: none; /* inicialmente oculto */
+        }
+
+        .login-header {
             background: #2c3e2f;
-            padding: 1.25rem 2rem;
+            padding: 2rem 1.5rem;
             text-align: center;
             border-bottom: 3px solid #e6b422;
         }
 
+        .login-header h1 {
+            font-size: 2rem;
+            color: #f9eed7;
+            text-shadow: 2px 2px 0 #1e2a1f;
+        }
+
+        .login-header p {
+            color: #e0d6b0;
+            margin-top: 0.5rem;
+        }
+
+        .login-form {
+            padding: 2rem 2rem 2rem 2rem;
+            background: #ece7e0;
+        }
+
+        .input-group-login {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .input-group-login label {
+            font-weight: 600;
+            color: #5b4b3a;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group-login input {
+            background: #fefcf8;
+            border: 1px solid #cfc5b6;
+            border-radius: 60px;
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .input-group-login input:focus {
+            border-color: #e6b422;
+            box-shadow: 0 0 0 2px rgba(230, 180, 34, 0.3);
+        }
+
+        .btn-login {
+            background: #2c3e2f;
+            border: none;
+            border-radius: 60px;
+            padding: 0.8rem;
+            font-weight: bold;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .btn-login:hover {
+            background: #1f2c21;
+            transform: scale(0.98);
+        }
+
+        .error-msg {
+            background: #ffe0e0;
+            color: #bc3f2e;
+            padding: 0.7rem;
+            border-radius: 40px;
+            text-align: center;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* Estilos del inventario (ventana principal) */
+        .header {
+            background: #2c3e2f;
+            padding: 1rem 2rem;
+            text-align: center;
+            border-bottom: 3px solid #e6b422;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
         .header h1 {
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             font-weight: 700;
             color: #f9eed7;
             text-shadow: 2px 2px 0 #1e2a1f;
         }
 
-        .header p {
-            color: #e0d6b0;
-            margin-top: 0.35rem;
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: #3a543c;
+            padding: 0.4rem 1rem;
+            border-radius: 60px;
+        }
+
+        .user-info span {
+            color: #f9eed7;
             font-weight: 500;
-            font-size: 0.9rem;
+        }
+
+        .btn-logout {
+            background: #b95c3a;
+            border: none;
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #9e4628;
         }
 
         .content-pane {
@@ -57,7 +171,6 @@
             background: #ece7e0;
         }
 
-        /* Formulario */
         .form-section {
             background: #fffaf3;
             border-radius: 1.5rem;
@@ -68,7 +181,7 @@
         }
 
         .form-title {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             font-weight: 600;
             color: #2c3e2f;
             border-left: 6px solid #e6b422;
@@ -134,7 +247,6 @@
             transform: scale(0.97);
         }
 
-        /* Tabla inventario */
         .inventory-section {
             background: #ffffffd9;
             border-radius: 1.5rem;
@@ -257,13 +369,6 @@
             background: #d3ddc4;
         }
 
-        .empty-row td {
-            text-align: center;
-            padding: 2rem;
-            color: #9b8c78;
-            font-style: italic;
-        }
-
         .unidad-badge {
             background: #e9e2d4;
             padding: 0.2rem 0.5rem;
@@ -292,331 +397,414 @@
     </style>
 </head>
 <body>
-<div class="inventario-window">
-    <div class="header">
-        <h1>🔩 El Tornillo Feliz</h1>
-        <p>Inventario de herramientas & suministros industriales | Unidades: bulto, caja, kilo, metro, etc.</p>
-    </div>
-    <div class="content-pane">
-        <!-- Agregar Producto con unidad de medida -->
-        <div class="form-section">
-            <div class="form-title">📦 Agregar Producto</div>
-            <div class="form-grid">
-                <div class="input-group">
-                    <label>CÓDIGO</label>
-                    <input type="text" id="codigoInput" placeholder="Ej: CEM-001" maxlength="20">
-                </div>
-                <div class="input-group">
-                    <label>NOMBRE</label>
-                    <input type="text" id="nombreInput" placeholder="Ej: Cemento Sol">
-                </div>
-                <div class="input-group">
-                    <label>UNIDAD DE MEDIDA</label>
-                    <select id="unidadSelect">
-                        <option value="unidad">Unidad (pieza)</option>
-                        <option value="bulto">Bulto (saco)</option>
-                        <option value="caja">Caja</option>
-                        <option value="kilo">Kilogramo (kg)</option>
-                        <option value="metro">Metro (m)</option>
-                        <option value="litro">Litro (L)</option>
-                        <option value="docena">Docena</option>
-                        <option value="pallet">Pallet</option>
-                        <option value="galon">Galón</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>CANTIDAD / STOCK</label>
-                    <input type="number" id="stockInput" value="0" step="1" min="0">
-                </div>
-                <div class="input-group">
-                    <label>PRECIO ($)</label>
-                    <input type="number" id="precioInput" value="0" step="100" min="0">
-                </div>
-                <div class="input-group">
-                    <label>STOCK MÍNIMO (en misma unidad)</label>
-                    <input type="number" id="stockMinInput" value="10" step="1" min="0">
-                </div>
-                <div class="input-group">
-                    <label>ESTADO</label>
-                    <select id="estadoSelect">
-                        <option value="Normal">Normal</option>
-                        <option value="Lista Sede">Lista Sede</option>
-                        <option value="Crítico">Crítico</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <button class="btn-add" id="agregarBtn">➕ Agregar producto</button>
-                </div>
+    <!-- Pantalla de Login -->
+    <div id="loginContainer" class="login-container">
+        <div class="login-header">
+            <h1>🔩 El Tornillo Feliz</h1>
+            <p>Sistema de inventarios | Acceso seguro</p>
+        </div>
+        <div class="login-form">
+            <div class="input-group-login">
+                <label>👤 USUARIO</label>
+                <input type="text" id="usernameInput" placeholder="Ej: admin, tornillo, bodeguero" autocomplete="off">
             </div>
-            <div style="font-size: 0.7rem; margin-top: 0.8rem; color: #8b7a64; text-align: right;">
-                💡 Ejemplo: Cemento → 50 bultos, Tornillos → 5 cajas, Alambre → 30 metros
+            <div class="input-group-login">
+                <label>🔒 CONTRASEÑA</label>
+                <input type="password" id="passwordInput" placeholder="********">
+            </div>
+            <button class="btn-login" id="loginBtn">📦 Ingresar al inventario</button>
+            <div id="errorMsg" class="error-msg"></div>
+            <div style="font-size: 0.7rem; text-align: center; margin-top: 1.2rem; color: #8b7a64;">
+                Credenciales de prueba: <strong>admin / admin123</strong>  |  <strong>tornillo / taller</strong>
             </div>
         </div>
+    </div>
 
-        <!-- Listado de inventario (ventana de productos) -->
-        <div class="inventory-section">
-            <div class="inv-header">
-                <h3>🛠️ Inventario de Productos</h3>
-                <div class="stats-badge" id="contadorProductos">Total: 5 productos</div>
-            </div>
-            <div style="overflow-x: auto;">
-                <table class="product-table" id="tablaProductos">
-                    <thead>
-                        <tr>
-                            <th>CÓDIGO</th><th>NOMBRE</th><th>STOCK + UNIDAD</th><th>PRECIO</th><th>STOCK MÍN</th><th>ESTADO</th><th>ACCIONES</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbodyInventario">
-                        <!-- Datos iniciales con variedad de unidades -->
-                    </tbody>
-                </table>
+    <!-- Ventana principal del inventario (protegida) -->
+    <div id="inventarioContainer" class="inventario-window">
+        <div class="header">
+            <h1>🔩 El Tornillo Feliz</h1>
+            <div class="user-info">
+                <span>👋 Hola, <span id="currentUserSpan">Usuario</span></span>
+                <button class="btn-logout" id="logoutBtn">🚪 Cerrar sesión</button>
             </div>
         </div>
-        <footer>📐 Unidades de medida flexibles: bulto, caja, kg, metro, litro, pallet, etc. | El Tornillo Feliz</footer>
+        <div class="content-pane">
+            <!-- Formulario agregar producto -->
+            <div class="form-section">
+                <div class="form-title">📦 Agregar Producto</div>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>CÓDIGO</label>
+                        <input type="text" id="codigoInput" placeholder="Ej: CEM-001">
+                    </div>
+                    <div class="input-group">
+                        <label>NOMBRE</label>
+                        <input type="text" id="nombreInput" placeholder="Ej: Cemento Sol">
+                    </div>
+                    <div class="input-group">
+                        <label>UNIDAD DE MEDIDA</label>
+                        <select id="unidadSelect">
+                            <option value="unidad">Unidad (pieza)</option>
+                            <option value="bulto">Bulto (saco)</option>
+                            <option value="caja">Caja</option>
+                            <option value="kilo">Kilogramo (kg)</option>
+                            <option value="metro">Metro (m)</option>
+                            <option value="litro">Litro (L)</option>
+                            <option value="docena">Docena</option>
+                            <option value="pallet">Pallet</option>
+                            <option value="galon">Galón</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>CANTIDAD / STOCK</label>
+                        <input type="number" id="stockInput" value="0" step="1" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>PRECIO ($)</label>
+                        <input type="number" id="precioInput" value="0" step="100" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>STOCK MÍNIMO</label>
+                        <input type="number" id="stockMinInput" value="10" step="1" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>ESTADO</label>
+                        <select id="estadoSelect">
+                            <option value="Normal">Normal</option>
+                            <option value="Lista Sede">Lista Sede</option>
+                            <option value="Crítico">Crítico</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <button class="btn-add" id="agregarBtn">➕ Agregar producto</button>
+                    </div>
+                </div>
+                <div style="font-size: 0.7rem; margin-top: 0.8rem; color: #8b7a64; text-align: right;">
+                    💡 Ejemplo: Cemento → 50 bultos, Tornillos → 5 cajas, Alambre → 30 metros
+                </div>
+            </div>
+
+            <!-- Tabla inventario -->
+            <div class="inventory-section">
+                <div class="inv-header">
+                    <h3>🛠️ Inventario de Productos</h3>
+                    <div class="stats-badge" id="contadorProductos">Total: 0 productos</div>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="product-table">
+                        <thead>
+                            <tr><th>CÓDIGO</th><th>NOMBRE</th><th>STOCK + UNIDAD</th><th>PRECIO</th><th>STOCK MÍN</th><th>ESTADO</th><th>ACCIONES</th></tr>
+                        </thead>
+                        <tbody id="tbodyInventario"></tbody>
+                    </table>
+                </div>
+            </div>
+            <footer>📐 Unidades de medida flexibles | Sistema de inventario "El Tornillo Feliz"</footer>
+        </div>
     </div>
-</div>
 
-<script>
-    // ---- DATOS INICIALES CON UNIDADES DE MEDIDA REALES ----
-    // Incluimos productos con diferentes unidades: bulto, caja, unidad, kilo, metro
-    let productos = [
-        { codigo: "T00-001", nombre: "Destornillador", stock: 30, unidad: "unidad", precio: 8500, stockMinimo: 15, estado: "Normal" },
-        { codigo: "CEM-101", nombre: "Cemento gris", stock: 42, unidad: "bulto", precio: 18900, stockMinimo: 20, estado: "Normal" },
-        { codigo: "TOR-202", nombre: "Tornillos 1/2\"", stock: 8, unidad: "caja", precio: 45900, stockMinimo: 10, estado: "Lista Sede" },
-        { codigo: "VAR-009", nombre: "Varilla corrugada", stock: 150, unidad: "metro", precio: 3200, stockMinimo: 80, estado: "Normal" },
-        { codigo: "CAL-045", nombre: "Cal hidratada", stock: 12, unidad: "bulto", precio: 22500, stockMinimo: 5, estado: "Lista Sede" },
-        { codigo: "CLA-332", nombre: "Clavos 2\"", stock: 3, unidad: "caja", precio: 12700, stockMinimo: 5, estado: "Crítico" },
-        { codigo: "ARE-777", nombre: "Arena fina", stock: 60, unidad: "bulto", precio: 8500, stockMinimo: 25, estado: "Normal" }
-    ];
+    <script>
+        // ---------- SISTEMA DE LOGIN (simulado con usuarios en memoria) ----------
+        // Usuarios válidos (en un caso real se validaría contra backend)
+        const VALID_USERS = [
+            { username: "admin", password: "admin123", displayName: "Administrador" },
+            { username: "tornillo", password: "taller", displayName: "Jorge (Bodega)" },
+            { username: "bodeguero", password: "inventario2026", displayName: "Carlos Almacén" }
+        ];
 
-    // Función para obtener nombre legible de la unidad
-    function getNombreUnidad(unidadKey) {
-        const mapa = {
-            'unidad': 'unidad',
-            'bulto': 'bulto',
-            'caja': 'caja',
-            'kilo': 'kg',
-            'metro': 'm',
-            'litro': 'L',
-            'docena': 'docena',
-            'pallet': 'pallet',
-            'galon': 'galón'
-        };
-        return mapa[unidadKey] || unidadKey;
-    }
+        // clave para sessionStorage
+        const SESSION_KEY = "tornillo_feliz_session";
 
-    // Formatear stock con unidad (ej: "42 bultos", "8 cajas", "1 metro" -> singular/plural básico)
-    function formatStockConUnidad(cantidad, unidadKey) {
-        let unidadTexto = getNombreUnidad(unidadKey);
-        // Reglas simples de plural para algunas unidades (español amigable)
-        if (cantidad !== 1) {
-            if (unidadKey === 'bulto') unidadTexto = 'bultos';
-            else if (unidadKey === 'caja') unidadTexto = 'cajas';
-            else if (unidadKey === 'kilo') unidadTexto = 'kg';
-            else if (unidadKey === 'metro') unidadTexto = 'metros';
-            else if (unidadKey === 'litro') unidadTexto = 'litros';
-            else if (unidadKey === 'docena') unidadTexto = 'docenas';
-            else if (unidadKey === 'pallet') unidadTexto = 'pallets';
-            else if (unidadKey === 'galon') unidadTexto = 'galones';
-            else if (unidadKey === 'unidad') unidadTexto = 'unidades';
-        } else {
-            if (unidadKey === 'kilo') unidadTexto = 'kg';
-            else if (unidadKey === 'metro') unidadTexto = 'metro';
-            else if (unidadKey === 'litro') unidadTexto = 'litro';
-        }
-        return `${cantidad} ${unidadTexto}`;
-    }
-
-    // Estado visual (con alerta por stock bajo)
-    function getEstadoVisual(producto) {
-        let estadoBase = producto.estado;
-        let advertencia = "";
-        if (producto.stock < producto.stockMinimo) {
-            advertencia = " 🔻";
-        }
-        if (producto.stock === 0) {
-            advertencia = " ⚠️ SIN STOCK";
-        }
-        return estadoBase + advertencia;
-    }
-
-    function getEstadoClase(producto) {
-        if (producto.stock === 0) return "critico";
-        if (producto.stock < producto.stockMinimo) return "bajo";
-        return "normal";
-    }
-
-    // Renderizar tabla principal
-    function renderInventario() {
-        const tbody = document.getElementById("tbodyInventario");
-        if (!tbody) return;
-        tbody.innerHTML = "";
-        if (productos.length === 0) {
-            const emptyRow = document.createElement("tr");
-            emptyRow.className = "empty-row";
-            emptyRow.innerHTML = `<td colspan="7">📭 No hay productos registrados. Agrega uno nuevo.</td>`;
-            tbody.appendChild(emptyRow);
-            document.getElementById("contadorProductos").innerText = `Total: 0 productos`;
-            return;
-        }
-
-        productos.forEach((prod, idx) => {
-            const row = document.createElement("tr");
-            const precioFormateado = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(prod.precio);
-            const stockConUnidad = formatStockConUnidad(prod.stock, prod.unidad);
-            const stockMinTexto = `${prod.stockMinimo} ${getNombreUnidad(prod.unidad)}${prod.stockMinimo !== 1 ? (prod.unidad==='bulto'?'s':(prod.unidad==='caja'?'s':(prod.unidad==='unidad'?'es':''))) : ''}`;
-            // mejor mostrar stock mínimo con su unidad simplificada
-            let unidadMin = getNombreUnidad(prod.unidad);
-            if (prod.stockMinimo !== 1) {
-                if (prod.unidad === 'bulto') unidadMin = 'bultos';
-                else if (prod.unidad === 'caja') unidadMin = 'cajas';
-                else if (prod.unidad === 'unidad') unidadMin = 'unidades';
-                else if (prod.unidad === 'metro') unidadMin = 'metros';
-                else if (prod.unidad === 'kilo') unidadMin = 'kg';
-                else if (prod.unidad === 'litro') unidadMin = 'litros';
+        // Función para iniciar sesión
+        function login(username, password) {
+            const user = VALID_USERS.find(u => u.username === username && u.password === password);
+            if (user) {
+                const session = {
+                    loggedIn: true,
+                    username: user.username,
+                    displayName: user.displayName,
+                    loginTime: new Date().toISOString()
+                };
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+                return true;
             }
-            const stockMinMostrar = `${prod.stockMinimo} ${unidadMin}`;
-            
-            const estadoTexto = getEstadoVisual(prod);
-            const claseEstado = getEstadoClase(prod);
-            
-            row.innerHTML = `
-                <td><strong>${escapeHtml(prod.codigo)}</strong></td>
-                <td>${escapeHtml(prod.nombre)}</td>
-                <td>${stockConUnidad} <span class="unidad-badge">${getNombreUnidad(prod.unidad)}</span></td>
-                <td>${precioFormateado}</td>
-                <td>${stockMinMostrar}</td>
-                <td><span class="estado-badge ${claseEstado}">${escapeHtml(estadoTexto)}</span></td>
-                <td class="acciones">
-                    <button class="btn-icon btn-borrar" data-index="${idx}" data-action="borrar">🗑️ Borrar</button>
-                    <button class="btn-icon btn-lista" data-index="${idx}" data-action="lista">📋 Lista Sede</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-        document.getElementById("contadorProductos").innerText = `Total: ${productos.length} productos`;
-        
-        // Eventos botones
-        document.querySelectorAll('.btn-borrar').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const idx = btn.getAttribute('data-index');
-                if (idx !== null) borrarProducto(parseInt(idx));
-            });
-        });
-        document.querySelectorAll('.btn-lista').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const idx = btn.getAttribute('data-index');
-                if (idx !== null) marcarListaSede(parseInt(idx));
-            });
-        });
-    }
+            return false;
+        }
 
-    function borrarProducto(index) {
-        if (index >= 0 && index < productos.length) {
-            productos.splice(index, 1);
+        // Verificar si hay sesión activa
+        function checkSession() {
+            const sessionData = sessionStorage.getItem(SESSION_KEY);
+            if (sessionData) {
+                try {
+                    const session = JSON.parse(sessionData);
+                    if (session.loggedIn === true) {
+                        return session;
+                    }
+                } catch(e) {}
+            }
+            return null;
+        }
+
+        // Cerrar sesión
+        function logout() {
+            sessionStorage.removeItem(SESSION_KEY);
+            showLoginScreen();
+        }
+
+        // Mostrar pantalla de login y ocultar inventario
+        function showLoginScreen() {
+            document.getElementById("loginContainer").style.display = "block";
+            document.getElementById("inventarioContainer").style.display = "none";
+            // limpiar campos de login
+            document.getElementById("usernameInput").value = "";
+            document.getElementById("passwordInput").value = "";
+            document.getElementById("errorMsg").style.display = "none";
+        }
+
+        // Mostrar ventana de inventario con datos del usuario
+        function showInventoryScreen(userSession) {
+            document.getElementById("loginContainer").style.display = "none";
+            document.getElementById("inventarioContainer").style.display = "block";
+            document.getElementById("currentUserSpan").innerText = userSession.displayName || userSession.username;
+            // cargar datos de inventario (productos)
+            loadProductosFromStorage();
             renderInventario();
         }
-    }
 
-    function marcarListaSede(index) {
-        if (index >= 0 && index < productos.length) {
-            productos[index].estado = "Lista Sede";
+        // ----- GESTIÓN DE PRODUCTOS (con localStorage persistente y datos iniciales) -----
+        let productos = [];
+
+        // Clave para guardar productos
+        const STORAGE_PRODUCTS_KEY = "tornillo_productos_v2";
+
+        // Unidad de medida helper
+        function getNombreUnidad(unidadKey) {
+            const mapa = {
+                'unidad': 'unidad',
+                'bulto': 'bulto',
+                'caja': 'caja',
+                'kilo': 'kg',
+                'metro': 'm',
+                'litro': 'L',
+                'docena': 'docena',
+                'pallet': 'pallet',
+                'galon': 'galón'
+            };
+            return mapa[unidadKey] || unidadKey;
+        }
+
+        function formatStockConUnidad(cantidad, unidadKey) {
+            let unidadTexto = getNombreUnidad(unidadKey);
+            if (cantidad !== 1) {
+                if (unidadKey === 'bulto') unidadTexto = 'bultos';
+                else if (unidadKey === 'caja') unidadTexto = 'cajas';
+                else if (unidadKey === 'kilo') unidadTexto = 'kg';
+                else if (unidadKey === 'metro') unidadTexto = 'metros';
+                else if (unidadKey === 'litro') unidadTexto = 'litros';
+                else if (unidadKey === 'docena') unidadTexto = 'docenas';
+                else if (unidadKey === 'pallet') unidadTexto = 'pallets';
+                else if (unidadKey === 'galon') unidadTexto = 'galones';
+                else if (unidadKey === 'unidad') unidadTexto = 'unidades';
+            } else {
+                if (unidadKey === 'kilo') unidadTexto = 'kg';
+                else if (unidadKey === 'metro') unidadTexto = 'metro';
+                else if (unidadKey === 'litro') unidadTexto = 'litro';
+            }
+            return `${cantidad} ${unidadTexto}`;
+        }
+
+        function getEstadoVisual(producto) {
+            let estadoBase = producto.estado;
+            let advertencia = "";
+            if (producto.stock < producto.stockMinimo) advertencia = " 🔻";
+            if (producto.stock === 0) advertencia = " ⚠️ SIN STOCK";
+            return estadoBase + advertencia;
+        }
+
+        function getEstadoClase(producto) {
+            if (producto.stock === 0) return "critico";
+            if (producto.stock < producto.stockMinimo) return "bajo";
+            return "normal";
+        }
+
+        function guardarProductosEnStorage() {
+            localStorage.setItem(STORAGE_PRODUCTS_KEY, JSON.stringify(productos));
+        }
+
+        function loadProductosFromStorage() {
+            const stored = localStorage.getItem(STORAGE_PRODUCTS_KEY);
+            if (stored) {
+                try {
+                    productos = JSON.parse(stored);
+                    if (!Array.isArray(productos)) productos = [];
+                    return;
+                } catch(e) { productos = []; }
+            }
+            // Datos iniciales por defecto con variedad de unidades (bulto, caja, metro, kilo)
+            productos = [
+                { codigo: "T00-001", nombre: "Destornillador", stock: 30, unidad: "unidad", precio: 8500, stockMinimo: 15, estado: "Normal" },
+                { codigo: "CEM-101", nombre: "Cemento gris", stock: 42, unidad: "bulto", precio: 18900, stockMinimo: 20, estado: "Normal" },
+                { codigo: "TOR-202", nombre: "Tornillos 1/2\"", stock: 8, unidad: "caja", precio: 45900, stockMinimo: 10, estado: "Lista Sede" },
+                { codigo: "VAR-009", nombre: "Varilla corrugada", stock: 150, unidad: "metro", precio: 3200, stockMinimo: 80, estado: "Normal" },
+                { codigo: "CAL-045", nombre: "Cal hidratada", stock: 12, unidad: "bulto", precio: 22500, stockMinimo: 5, estado: "Lista Sede" },
+                { codigo: "CLA-332", nombre: "Clavos 2\"", stock: 3, unidad: "caja", precio: 12700, stockMinimo: 5, estado: "Crítico" }
+            ];
+            guardarProductosEnStorage();
+        }
+
+        function renderInventario() {
+            const tbody = document.getElementById("tbodyInventario");
+            if (!tbody) return;
+            tbody.innerHTML = "";
+            if (productos.length === 0) {
+                const emptyRow = document.createElement("tr");
+                emptyRow.className = "empty-row";
+                emptyRow.innerHTML = `<td colspan="7">📭 No hay productos registrados. Agrega uno nuevo.</td>`;
+                tbody.appendChild(emptyRow);
+                document.getElementById("contadorProductos").innerText = `Total: 0 productos`;
+                return;
+            }
+
+            productos.forEach((prod, idx) => {
+                const row = document.createElement("tr");
+                const precioFormateado = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(prod.precio);
+                const stockConUnidad = formatStockConUnidad(prod.stock, prod.unidad);
+                let unidadMin = getNombreUnidad(prod.unidad);
+                if (prod.stockMinimo !== 1) {
+                    if (prod.unidad === 'bulto') unidadMin = 'bultos';
+                    else if (prod.unidad === 'caja') unidadMin = 'cajas';
+                    else if (prod.unidad === 'unidad') unidadMin = 'unidades';
+                    else if (prod.unidad === 'metro') unidadMin = 'metros';
+                    else if (prod.unidad === 'kilo') unidadMin = 'kg';
+                    else if (prod.unidad === 'litro') unidadMin = 'litros';
+                }
+                const stockMinMostrar = `${prod.stockMinimo} ${unidadMin}`;
+                const estadoTexto = getEstadoVisual(prod);
+                const claseEstado = getEstadoClase(prod);
+                row.innerHTML = `
+                    <td><strong>${escapeHtml(prod.codigo)}</strong></td>
+                    <td>${escapeHtml(prod.nombre)}</td>
+                    <td>${stockConUnidad} <span class="unidad-badge">${getNombreUnidad(prod.unidad)}</span></td>
+                    <td>${precioFormateado}</td>
+                    <td>${stockMinMostrar}</td>
+                    <td><span class="estado-badge ${claseEstado}">${escapeHtml(estadoTexto)}</span></td>
+                    <td class="acciones">
+                        <button class="btn-icon btn-borrar" data-index="${idx}">🗑️ Borrar</button>
+                        <button class="btn-icon btn-lista" data-index="${idx}">📋 Lista Sede</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            document.getElementById("contadorProductos").innerText = `Total: ${productos.length} productos`;
+
+            // Eventos dinámicos
+            document.querySelectorAll('.btn-borrar').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(btn.getAttribute('data-index'));
+                    if (!isNaN(idx)) borrarProducto(idx);
+                });
+            });
+            document.querySelectorAll('.btn-lista').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(btn.getAttribute('data-index'));
+                    if (!isNaN(idx)) marcarListaSede(idx);
+                });
+            });
+        }
+
+        function borrarProducto(index) {
+            if (index >= 0 && index < productos.length) {
+                productos.splice(index, 1);
+                guardarProductosEnStorage();
+                renderInventario();
+            }
+        }
+
+        function marcarListaSede(index) {
+            if (index >= 0 && index < productos.length) {
+                productos[index].estado = "Lista Sede";
+                guardarProductosEnStorage();
+                renderInventario();
+            }
+        }
+
+        function agregarProducto() {
+            const codigo = document.getElementById("codigoInput").value.trim();
+            const nombre = document.getElementById("nombreInput").value.trim();
+            const unidad = document.getElementById("unidadSelect").value;
+            let stock = parseInt(document.getElementById("stockInput").value, 10);
+            let precio = parseFloat(document.getElementById("precioInput").value);
+            let stockMinimo = parseInt(document.getElementById("stockMinInput").value, 10);
+            const estado = document.getElementById("estadoSelect").value;
+
+            if (!codigo) { alert("❌ Código obligatorio"); return; }
+            if (!nombre) { alert("❌ Nombre obligatorio"); return; }
+            if (isNaN(stock) || stock < 0) stock = 0;
+            if (isNaN(precio) || precio < 0) precio = 0;
+            if (isNaN(stockMinimo) || stockMinimo < 0) stockMinimo = 0;
+
+            if (productos.some(p => p.codigo.toLowerCase() === codigo.toLowerCase())) {
+                alert(`⚠️ Ya existe producto con código ${codigo}`);
+                return;
+            }
+
+            productos.push({
+                codigo, nombre, stock, unidad, precio: Math.round(precio), stockMinimo, estado
+            });
+            guardarProductosEnStorage();
             renderInventario();
-        }
-    }
 
-    // Agregar producto con unidad de medida seleccionada
-    function agregarProducto() {
-        const codigoInput = document.getElementById("codigoInput");
-        const nombreInput = document.getElementById("nombreInput");
-        const unidadSelect = document.getElementById("unidadSelect");
-        const stockInput = document.getElementById("stockInput");
-        const precioInput = document.getElementById("precioInput");
-        const stockMinInput = document.getElementById("stockMinInput");
-        const estadoSelect = document.getElementById("estadoSelect");
-
-        let codigo = codigoInput.value.trim();
-        let nombre = nombreInput.value.trim();
-        let unidad = unidadSelect.value;
-        let stock = parseInt(stockInput.value, 10);
-        let precio = parseFloat(precioInput.value);
-        let stockMinimo = parseInt(stockMinInput.value, 10);
-        let estado = estadoSelect.value;
-
-        if (codigo === "") {
-            alert("❌ El código del producto es obligatorio.");
-            return;
-        }
-        if (nombre === "") {
-            alert("❌ El nombre del producto es obligatorio.");
-            return;
-        }
-        if (isNaN(stock) || stock < 0) {
-            alert("❌ La cantidad (stock) debe ser un número mayor o igual a 0.");
-            return;
-        }
-        if (isNaN(precio) || precio < 0) {
-            alert("❌ El precio debe ser un valor numérico válido (mayor o igual a 0).");
-            return;
-        }
-        if (isNaN(stockMinimo) || stockMinimo < 0) {
-            alert("❌ El stock mínimo debe ser un número positivo o 0.");
-            return;
+            // limpiar campos
+            document.getElementById("codigoInput").value = "";
+            document.getElementById("nombreInput").value = "";
+            document.getElementById("stockInput").value = "0";
+            document.getElementById("precioInput").value = "0";
+            document.getElementById("stockMinInput").value = "10";
+            document.getElementById("estadoSelect").value = "Normal";
         }
 
-        // Validar código duplicado
-        const existe = productos.some(p => p.codigo.toLowerCase() === codigo.toLowerCase());
-        if (existe) {
-            alert(`⚠️ Ya existe un producto con el código ${codigo}. Usa otro código.`);
-            return;
+        function escapeHtml(str) {
+            if (!str) return "";
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
         }
 
-        precio = Math.round(precio);
-        
-        const nuevoProducto = {
-            codigo: codigo,
-            nombre: nombre,
-            stock: stock,
-            unidad: unidad,
-            precio: precio,
-            stockMinimo: stockMinimo,
-            estado: estado
-        };
-        productos.push(nuevoProducto);
-        
-        // Limpiar campos (mantener unidad útil, pero limpiar texto)
-        codigoInput.value = "";
-        nombreInput.value = "";
-        stockInput.value = "0";
-        precioInput.value = "0";
-        stockMinInput.value = "10";
-        estadoSelect.value = "Normal";
-        // unidad se queda en la última seleccionada (no se resetea para rapidez)
-        renderInventario();
-    }
-
-    function escapeHtml(str) {
-        if (!str) return "";
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
+        // Eventos login
+        document.getElementById("loginBtn").addEventListener("click", () => {
+            const username = document.getElementById("usernameInput").value.trim();
+            const password = document.getElementById("passwordInput").value;
+            const errorDiv = document.getElementById("errorMsg");
+            if (login(username, password)) {
+                errorDiv.style.display = "none";
+                const session = checkSession();
+                if (session) showInventoryScreen(session);
+            } else {
+                errorDiv.innerText = "❌ Usuario o contraseña incorrectos. Intenta nuevamente.";
+                errorDiv.style.display = "block";
+            }
         });
-    }
 
-    // Event listeners
-    document.getElementById("agregarBtn").addEventListener("click", agregarProducto);
-    const inputsForm = ['codigoInput', 'nombreInput', 'stockInput', 'precioInput', 'stockMinInput'];
-    inputsForm.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('keypress', (e) => { if (e.key === 'Enter') agregarProducto(); });
-    });
-    document.getElementById("unidadSelect").addEventListener('keypress', (e) => { if (e.key === 'Enter') agregarProducto(); });
-    document.getElementById("estadoSelect").addEventListener('keypress', (e) => { if (e.key === 'Enter') agregarProducto(); });
+        document.getElementById("logoutBtn").addEventListener("click", logout);
+        document.getElementById("agregarBtn").addEventListener("click", agregarProducto);
+        // Enter en login
+        const passInput = document.getElementById("passwordInput");
+        const userInput = document.getElementById("usernameInput");
+        const doLogin = () => document.getElementById("loginBtn").click();
+        passInput.addEventListener("keypress", e => { if (e.key === "Enter") doLogin(); });
+        userInput.addEventListener("keypress", e => { if (e.key === "Enter") doLogin(); });
 
-    // Render inicial
-    renderInventario();
-</script>
+        // Inicialización: verificar sesión al cargar
+        const activeSession = checkSession();
+        if (activeSession) {
+            showInventoryScreen(activeSession);
+        } else {
+            showLoginScreen();
+        }
+    </script>
 </body>
 </html>
