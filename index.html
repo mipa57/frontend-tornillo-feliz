@@ -2,87 +2,621 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Tornillo Feliz</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>El Tornillo Feliz - Inventario con Unidades</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #c0c9cf 0%, #aab3bb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        /* Ventana principal estilo industrial */
+        .inventario-window {
+            max-width: 1500px;
+            width: 100%;
+            background: #f4f2ef;
+            border-radius: 2rem;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2c3e2f;
+            padding: 1.25rem 2rem;
+            text-align: center;
+            border-bottom: 3px solid #e6b422;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #f9eed7;
+            text-shadow: 2px 2px 0 #1e2a1f;
+        }
+
+        .header p {
+            color: #e0d6b0;
+            margin-top: 0.35rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .content-pane {
+            padding: 2rem;
+            background: #ece7e0;
+        }
+
+        /* Formulario */
+        .form-section {
+            background: #fffaf3;
+            border-radius: 1.5rem;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+            border: 1px solid #ddd2c0;
+        }
+
+        .form-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #2c3e2f;
+            border-left: 6px solid #e6b422;
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 1.2rem 1.5rem;
+            align-items: end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #5b4b3a;
+        }
+
+        .input-group input, .input-group select {
+            background: #fefcf8;
+            border: 1px solid #cfc5b6;
+            border-radius: 60px;
+            padding: 0.7rem 1rem;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            outline: none;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            border-color: #e6b422;
+            box-shadow: 0 0 0 2px rgba(230, 180, 34, 0.3);
+        }
+
+        .btn-add {
+            background: #2c3e2f;
+            border: none;
+            border-radius: 60px;
+            padding: 0.7rem 1.5rem;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.7rem;
+        }
+
+        .btn-add:hover {
+            background: #1f2c21;
+            transform: scale(0.97);
+        }
+
+        /* Tabla inventario */
+        .inventory-section {
+            background: #ffffffd9;
+            border-radius: 1.5rem;
+            padding: 0.25rem 0 1rem 0;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+            border: 1px solid #e2d9cf;
+        }
+
+        .inv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            padding: 1rem 1.5rem 0.2rem 1.5rem;
+        }
+
+        .inv-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e2f;
+        }
+
+        .stats-badge {
+            background: #e9e0d3;
+            padding: 0.3rem 1rem;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #5e4b34;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 900px;
+        }
+
+        .product-table th {
+            text-align: left;
+            padding: 1rem 1rem 0.8rem 1.2rem;
+            background: #f3ede5;
+            color: #2f3e2c;
+            font-weight: 700;
+            border-bottom: 2px solid #e2cba4;
+        }
+
+        .product-table td {
+            padding: 1rem 1rem 1rem 1.2rem;
+            border-bottom: 1px solid #e7dfd5;
+            vertical-align: middle;
+            color: #2b2a27;
+        }
+
+        .product-table tr:hover td {
+            background-color: #fff8ef;
+        }
+
+        .estado-badge {
+            display: inline-block;
+            padding: 0.25rem 0.7rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #f0e3d0;
+            color: #7a5a3a;
+        }
+
+        .estado-badge.normal {
+            background: #d9e6cf;
+            color: #2f5e2a;
+        }
+
+        .estado-badge.bajo {
+            background: #ffe0b5;
+            color: #bd7f2a;
+        }
+
+        .estado-badge.critico {
+            background: #ffe0e0;
+            color: #bc3f2e;
+        }
+
+        .acciones {
+            display: flex;
+            gap: 0.7rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0.3rem 0.7rem;
+            border-radius: 30px;
+            transition: 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .btn-borrar {
+            background: #f5e4dc;
+            color: #b13e2d;
+        }
+
+        .btn-borrar:hover {
+            background: #eccbc1;
+        }
+
+        .btn-lista {
+            background: #e5e9df;
+            color: #4b6e3b;
+        }
+
+        .btn-lista:hover {
+            background: #d3ddc4;
+        }
+
+        .empty-row td {
+            text-align: center;
+            padding: 2rem;
+            color: #9b8c78;
+            font-style: italic;
+        }
+
+        .unidad-badge {
+            background: #e9e2d4;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-left: 0.3rem;
+            color: #6b4c2c;
+        }
+
+        footer {
+            background: #e2d9ce;
+            text-align: center;
+            padding: 0.8rem;
+            font-size: 0.7rem;
+            color: #5f4f3a;
+            border-top: 1px solid #cfc2b2;
+        }
+
+        @media (max-width: 750px) {
+            body { padding: 1rem; }
+            .content-pane { padding: 1.2rem; }
+            .form-section { padding: 1rem; }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>El Tornillo Feliz</h1>
-        </div>
-
-        <!-- Tarjeta: Agregar Producto -->
-        <div class="card">
-            <div class="card-header">
-                <h2>Agregar Producto</h2>
-            </div>
-            <div class="card-body">
-                <form id="form-producto">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>CÓDIGO</label>
-                            <input type="text" id="codigo" placeholder="Ej: TOR-001" required>
-                        </div>
-                        <div class="form-group">
-                            <label>NOMBRE</label>
-                            <input type="text" id="nombre" placeholder="Ej: Martillo" required>
-                        </div>
-                        <div class="form-group">
-                            <label>CANTIDAD</label>
-                            <input type="number" id="cantidad" value="0" required>
-                        </div>
-                        <div class="form-group">
-                            <label>PRECIO VENTA ($)</label>
-                            <input type="number" id="precio" step="0.01" value="0" required>
-                        </div>
-                        <div class="form-group">
-                            <label>STOCK MÍNIMO</label>
-                            <input type="number" id="stock-minimo" value="5" required>
-                        </div>
-                    </div>
-                    <div class="btn-group">
-                        <button type="submit" class="btn btn-primary">Guardar Producto</button>
-                        <button type="button" id="btn-cancelar" class="btn btn-secondary">Cancelar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Tarjeta: Inventario -->
-        <div class="card">
-            <div class="card-header">
-                <h2>Inventario de Productos</h2>
-            </div>
-            <div class="card-body">
-                <div id="mensaje-error" class="message message-error" style="display: none;"></div>
-                <div id="mensaje-exito" class="message message-success" style="display: none;"></div>
-                
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>CÓDIGO</th>
-                                <th>NOMBRE</th>
-                                <th>CANTIDAD</th>
-                                <th>PRECIO</th>
-                                <th>STOCK MÍNIMO</th>
-                                <th>ESTADO</th>
-                                <th>ACCIONES</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-productos">
-                            <tr>
-                                <td colspan="7" class="loading">Cargando productos...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+<div class="inventario-window">
+    <div class="header">
+        <h1>🔩 El Tornillo Feliz</h1>
+        <p>Inventario de herramientas & suministros industriales | Unidades: bulto, caja, kilo, metro, etc.</p>
+    </div>
+    <div class="content-pane">
+        <!-- Agregar Producto con unidad de medida -->
+        <div class="form-section">
+            <div class="form-title">📦 Agregar Producto</div>
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>CÓDIGO</label>
+                    <input type="text" id="codigoInput" placeholder="Ej: CEM-001" maxlength="20">
+                </div>
+                <div class="input-group">
+                    <label>NOMBRE</label>
+                    <input type="text" id="nombreInput" placeholder="Ej: Cemento Sol">
+                </div>
+                <div class="input-group">
+                    <label>UNIDAD DE MEDIDA</label>
+                    <select id="unidadSelect">
+                        <option value="unidad">Unidad (pieza)</option>
+                        <option value="bulto">Bulto (saco)</option>
+                        <option value="caja">Caja</option>
+                        <option value="kilo">Kilogramo (kg)</option>
+                        <option value="metro">Metro (m)</option>
+                        <option value="litro">Litro (L)</option>
+                        <option value="docena">Docena</option>
+                        <option value="pallet">Pallet</option>
+                        <option value="galon">Galón</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>CANTIDAD / STOCK</label>
+                    <input type="number" id="stockInput" value="0" step="1" min="0">
+                </div>
+                <div class="input-group">
+                    <label>PRECIO ($)</label>
+                    <input type="number" id="precioInput" value="0" step="100" min="0">
+                </div>
+                <div class="input-group">
+                    <label>STOCK MÍNIMO (en misma unidad)</label>
+                    <input type="number" id="stockMinInput" value="10" step="1" min="0">
+                </div>
+                <div class="input-group">
+                    <label>ESTADO</label>
+                    <select id="estadoSelect">
+                        <option value="Normal">Normal</option>
+                        <option value="Lista Sede">Lista Sede</option>
+                        <option value="Crítico">Crítico</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <button class="btn-add" id="agregarBtn">➕ Agregar producto</button>
                 </div>
             </div>
+            <div style="font-size: 0.7rem; margin-top: 0.8rem; color: #8b7a64; text-align: right;">
+                💡 Ejemplo: Cemento → 50 bultos, Tornillos → 5 cajas, Alambre → 30 metros
+            </div>
         </div>
-    </div>
 
-    <script src="js/main.js"></script>
+        <!-- Listado de inventario (ventana de productos) -->
+        <div class="inventory-section">
+            <div class="inv-header">
+                <h3>🛠️ Inventario de Productos</h3>
+                <div class="stats-badge" id="contadorProductos">Total: 5 productos</div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="product-table" id="tablaProductos">
+                    <thead>
+                        <tr>
+                            <th>CÓDIGO</th><th>NOMBRE</th><th>STOCK + UNIDAD</th><th>PRECIO</th><th>STOCK MÍN</th><th>ESTADO</th><th>ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyInventario">
+                        <!-- Datos iniciales con variedad de unidades -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <footer>📐 Unidades de medida flexibles: bulto, caja, kg, metro, litro, pallet, etc. | El Tornillo Feliz</footer>
+    </div>
+</div>
+
+<script>
+    // ---- DATOS INICIALES CON UNIDADES DE MEDIDA REALES ----
+    // Incluimos productos con diferentes unidades: bulto, caja, unidad, kilo, metro
+    let productos = [
+        { codigo: "T00-001", nombre: "Destornillador", stock: 30, unidad: "unidad", precio: 8500, stockMinimo: 15, estado: "Normal" },
+        { codigo: "CEM-101", nombre: "Cemento gris", stock: 42, unidad: "bulto", precio: 18900, stockMinimo: 20, estado: "Normal" },
+        { codigo: "TOR-202", nombre: "Tornillos 1/2\"", stock: 8, unidad: "caja", precio: 45900, stockMinimo: 10, estado: "Lista Sede" },
+        { codigo: "VAR-009", nombre: "Varilla corrugada", stock: 150, unidad: "metro", precio: 3200, stockMinimo: 80, estado: "Normal" },
+        { codigo: "CAL-045", nombre: "Cal hidratada", stock: 12, unidad: "bulto", precio: 22500, stockMinimo: 5, estado: "Lista Sede" },
+        { codigo: "CLA-332", nombre: "Clavos 2\"", stock: 3, unidad: "caja", precio: 12700, stockMinimo: 5, estado: "Crítico" },
+        { codigo: "ARE-777", nombre: "Arena fina", stock: 60, unidad: "bulto", precio: 8500, stockMinimo: 25, estado: "Normal" }
+    ];
+
+    // Función para obtener nombre legible de la unidad
+    function getNombreUnidad(unidadKey) {
+        const mapa = {
+            'unidad': 'unidad',
+            'bulto': 'bulto',
+            'caja': 'caja',
+            'kilo': 'kg',
+            'metro': 'm',
+            'litro': 'L',
+            'docena': 'docena',
+            'pallet': 'pallet',
+            'galon': 'galón'
+        };
+        return mapa[unidadKey] || unidadKey;
+    }
+
+    // Formatear stock con unidad (ej: "42 bultos", "8 cajas", "1 metro" -> singular/plural básico)
+    function formatStockConUnidad(cantidad, unidadKey) {
+        let unidadTexto = getNombreUnidad(unidadKey);
+        // Reglas simples de plural para algunas unidades (español amigable)
+        if (cantidad !== 1) {
+            if (unidadKey === 'bulto') unidadTexto = 'bultos';
+            else if (unidadKey === 'caja') unidadTexto = 'cajas';
+            else if (unidadKey === 'kilo') unidadTexto = 'kg';
+            else if (unidadKey === 'metro') unidadTexto = 'metros';
+            else if (unidadKey === 'litro') unidadTexto = 'litros';
+            else if (unidadKey === 'docena') unidadTexto = 'docenas';
+            else if (unidadKey === 'pallet') unidadTexto = 'pallets';
+            else if (unidadKey === 'galon') unidadTexto = 'galones';
+            else if (unidadKey === 'unidad') unidadTexto = 'unidades';
+        } else {
+            if (unidadKey === 'kilo') unidadTexto = 'kg';
+            else if (unidadKey === 'metro') unidadTexto = 'metro';
+            else if (unidadKey === 'litro') unidadTexto = 'litro';
+        }
+        return `${cantidad} ${unidadTexto}`;
+    }
+
+    // Estado visual (con alerta por stock bajo)
+    function getEstadoVisual(producto) {
+        let estadoBase = producto.estado;
+        let advertencia = "";
+        if (producto.stock < producto.stockMinimo) {
+            advertencia = " 🔻";
+        }
+        if (producto.stock === 0) {
+            advertencia = " ⚠️ SIN STOCK";
+        }
+        return estadoBase + advertencia;
+    }
+
+    function getEstadoClase(producto) {
+        if (producto.stock === 0) return "critico";
+        if (producto.stock < producto.stockMinimo) return "bajo";
+        return "normal";
+    }
+
+    // Renderizar tabla principal
+    function renderInventario() {
+        const tbody = document.getElementById("tbodyInventario");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+        if (productos.length === 0) {
+            const emptyRow = document.createElement("tr");
+            emptyRow.className = "empty-row";
+            emptyRow.innerHTML = `<td colspan="7">📭 No hay productos registrados. Agrega uno nuevo.</td>`;
+            tbody.appendChild(emptyRow);
+            document.getElementById("contadorProductos").innerText = `Total: 0 productos`;
+            return;
+        }
+
+        productos.forEach((prod, idx) => {
+            const row = document.createElement("tr");
+            const precioFormateado = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(prod.precio);
+            const stockConUnidad = formatStockConUnidad(prod.stock, prod.unidad);
+            const stockMinTexto = `${prod.stockMinimo} ${getNombreUnidad(prod.unidad)}${prod.stockMinimo !== 1 ? (prod.unidad==='bulto'?'s':(prod.unidad==='caja'?'s':(prod.unidad==='unidad'?'es':''))) : ''}`;
+            // mejor mostrar stock mínimo con su unidad simplificada
+            let unidadMin = getNombreUnidad(prod.unidad);
+            if (prod.stockMinimo !== 1) {
+                if (prod.unidad === 'bulto') unidadMin = 'bultos';
+                else if (prod.unidad === 'caja') unidadMin = 'cajas';
+                else if (prod.unidad === 'unidad') unidadMin = 'unidades';
+                else if (prod.unidad === 'metro') unidadMin = 'metros';
+                else if (prod.unidad === 'kilo') unidadMin = 'kg';
+                else if (prod.unidad === 'litro') unidadMin = 'litros';
+            }
+            const stockMinMostrar = `${prod.stockMinimo} ${unidadMin}`;
+            
+            const estadoTexto = getEstadoVisual(prod);
+            const claseEstado = getEstadoClase(prod);
+            
+            row.innerHTML = `
+                <td><strong>${escapeHtml(prod.codigo)}</strong></td>
+                <td>${escapeHtml(prod.nombre)}</td>
+                <td>${stockConUnidad} <span class="unidad-badge">${getNombreUnidad(prod.unidad)}</span></td>
+                <td>${precioFormateado}</td>
+                <td>${stockMinMostrar}</td>
+                <td><span class="estado-badge ${claseEstado}">${escapeHtml(estadoTexto)}</span></td>
+                <td class="acciones">
+                    <button class="btn-icon btn-borrar" data-index="${idx}" data-action="borrar">🗑️ Borrar</button>
+                    <button class="btn-icon btn-lista" data-index="${idx}" data-action="lista">📋 Lista Sede</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        document.getElementById("contadorProductos").innerText = `Total: ${productos.length} productos`;
+        
+        // Eventos botones
+        document.querySelectorAll('.btn-borrar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = btn.getAttribute('data-index');
+                if (idx !== null) borrarProducto(parseInt(idx));
+            });
+        });
+        document.querySelectorAll('.btn-lista').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = btn.getAttribute('data-index');
+                if (idx !== null) marcarListaSede(parseInt(idx));
+            });
+        });
+    }
+
+    function borrarProducto(index) {
+        if (index >= 0 && index < productos.length) {
+            productos.splice(index, 1);
+            renderInventario();
+        }
+    }
+
+    function marcarListaSede(index) {
+        if (index >= 0 && index < productos.length) {
+            productos[index].estado = "Lista Sede";
+            renderInventario();
+        }
+    }
+
+    // Agregar producto con unidad de medida seleccionada
+    function agregarProducto() {
+        const codigoInput = document.getElementById("codigoInput");
+        const nombreInput = document.getElementById("nombreInput");
+        const unidadSelect = document.getElementById("unidadSelect");
+        const stockInput = document.getElementById("stockInput");
+        const precioInput = document.getElementById("precioInput");
+        const stockMinInput = document.getElementById("stockMinInput");
+        const estadoSelect = document.getElementById("estadoSelect");
+
+        let codigo = codigoInput.value.trim();
+        let nombre = nombreInput.value.trim();
+        let unidad = unidadSelect.value;
+        let stock = parseInt(stockInput.value, 10);
+        let precio = parseFloat(precioInput.value);
+        let stockMinimo = parseInt(stockMinInput.value, 10);
+        let estado = estadoSelect.value;
+
+        if (codigo === "") {
+            alert("❌ El código del producto es obligatorio.");
+            return;
+        }
+        if (nombre === "") {
+            alert("❌ El nombre del producto es obligatorio.");
+            return;
+        }
+        if (isNaN(stock) || stock < 0) {
+            alert("❌ La cantidad (stock) debe ser un número mayor o igual a 0.");
+            return;
+        }
+        if (isNaN(precio) || precio < 0) {
+            alert("❌ El precio debe ser un valor numérico válido (mayor o igual a 0).");
+            return;
+        }
+        if (isNaN(stockMinimo) || stockMinimo < 0) {
+            alert("❌ El stock mínimo debe ser un número positivo o 0.");
+            return;
+        }
+
+        // Validar código duplicado
+        const existe = productos.some(p => p.codigo.toLowerCase() === codigo.toLowerCase());
+        if (existe) {
+            alert(`⚠️ Ya existe un producto con el código ${codigo}. Usa otro código.`);
+            return;
+        }
+
+        precio = Math.round(precio);
+        
+        const nuevoProducto = {
+            codigo: codigo,
+            nombre: nombre,
+            stock: stock,
+            unidad: unidad,
+            precio: precio,
+            stockMinimo: stockMinimo,
+            estado: estado
+        };
+        productos.push(nuevoProducto);
+        
+        // Limpiar campos (mantener unidad útil, pero limpiar texto)
+        codigoInput.value = "";
+        nombreInput.value = "";
+        stockInput.value = "0";
+        precioInput.value = "0";
+        stockMinInput.value = "10";
+        estadoSelect.value = "Normal";
+        // unidad se queda en la última seleccionada (no se resetea para rapidez)
+        renderInventario();
+    }
+
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Event listeners
+    document.getElementById("agregarBtn").addEventListener("click", agregarProducto);
+    const inputsForm = ['codigoInput', 'nombreInput', 'stockInput', 'precioInput', 'stockMinInput'];
+    inputsForm.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('keypress', (e) => { if (e.key === 'Enter') agregarProducto(); });
+    });
+    document.getElementById("unidadSelect").addEventListener('keypress', (e) => { if (e.key === 'Enter') agregarProducto(); });
+    document.getElementById("estadoSelect").addEventListener('keypress', (e) => { if (e.key === 'Enter') agregarProducto(); });
+
+    // Render inicial
+    renderInventario();
+</script>
 </body>
 </html>
