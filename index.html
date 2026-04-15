@@ -3,9 +3,398 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>El Tornillo Feliz - Inventario</title>
-    <link rel="stylesheet" href="styles.css">
-    
+    <title>El Tornillo Feliz - Login e Inventario</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #c0c9cf 0%, #aab3bb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        /* Pantalla de login */
+        .login-container, .inventario-window {
+            max-width: 500px;
+            width: 100%;
+            background: #f4f2ef;
+            border-radius: 2rem;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .inventario-window {
+            max-width: 1500px;
+            display: none; /* inicialmente oculto */
+        }
+
+        .login-header {
+            background: #2c3e2f;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border-bottom: 3px solid #e6b422;
+        }
+
+        .login-header h1 {
+            font-size: 2rem;
+            color: #f9eed7;
+            text-shadow: 2px 2px 0 #1e2a1f;
+        }
+
+        .login-header p {
+            color: #e0d6b0;
+            margin-top: 0.5rem;
+        }
+
+        .login-form {
+            padding: 2rem 2rem 2rem 2rem;
+            background: #ece7e0;
+        }
+
+        .input-group-login {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .input-group-login label {
+            font-weight: 600;
+            color: #5b4b3a;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group-login input {
+            background: #fefcf8;
+            border: 1px solid #cfc5b6;
+            border-radius: 60px;
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .input-group-login input:focus {
+            border-color: #e6b422;
+            box-shadow: 0 0 0 2px rgba(230, 180, 34, 0.3);
+        }
+
+        .btn-login {
+            background: #2c3e2f;
+            border: none;
+            border-radius: 60px;
+            padding: 0.8rem;
+            font-weight: bold;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .btn-login:hover {
+            background: #1f2c21;
+            transform: scale(0.98);
+        }
+
+        .error-msg {
+            background: #ffe0e0;
+            color: #bc3f2e;
+            padding: 0.7rem;
+            border-radius: 40px;
+            text-align: center;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* Estilos del inventario (ventana principal) */
+        .header {
+            background: #2c3e2f;
+            padding: 1rem 2rem;
+            text-align: center;
+            border-bottom: 3px solid #e6b422;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #f9eed7;
+            text-shadow: 2px 2px 0 #1e2a1f;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: #3a543c;
+            padding: 0.4rem 1rem;
+            border-radius: 60px;
+        }
+
+        .user-info span {
+            color: #f9eed7;
+            font-weight: 500;
+        }
+
+        .btn-logout {
+            background: #b95c3a;
+            border: none;
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #9e4628;
+        }
+
+        .content-pane {
+            padding: 2rem;
+            background: #ece7e0;
+        }
+
+        .form-section {
+            background: #fffaf3;
+            border-radius: 1.5rem;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+            border: 1px solid #ddd2c0;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e2f;
+            border-left: 6px solid #e6b422;
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 1.2rem 1.5rem;
+            align-items: end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #5b4b3a;
+        }
+
+        .input-group input, .input-group select {
+            background: #fefcf8;
+            border: 1px solid #cfc5b6;
+            border-radius: 60px;
+            padding: 0.7rem 1rem;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            outline: none;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            border-color: #e6b422;
+            box-shadow: 0 0 0 2px rgba(230, 180, 34, 0.3);
+        }
+
+        .btn-add {
+            background: #2c3e2f;
+            border: none;
+            border-radius: 60px;
+            padding: 0.7rem 1.5rem;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.7rem;
+        }
+
+        .btn-add:hover {
+            background: #1f2c21;
+            transform: scale(0.97);
+        }
+
+        .inventory-section {
+            background: #ffffffd9;
+            border-radius: 1.5rem;
+            padding: 0.25rem 0 1rem 0;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+            border: 1px solid #e2d9cf;
+        }
+
+        .inv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            padding: 1rem 1.5rem 0.2rem 1.5rem;
+        }
+
+        .inv-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e2f;
+        }
+
+        .stats-badge {
+            background: #e9e0d3;
+            padding: 0.3rem 1rem;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #5e4b34;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 900px;
+        }
+
+        .product-table th {
+            text-align: left;
+            padding: 1rem 1rem 0.8rem 1.2rem;
+            background: #f3ede5;
+            color: #2f3e2c;
+            font-weight: 700;
+            border-bottom: 2px solid #e2cba4;
+        }
+
+        .product-table td {
+            padding: 1rem 1rem 1rem 1.2rem;
+            border-bottom: 1px solid #e7dfd5;
+            vertical-align: middle;
+            color: #2b2a27;
+        }
+
+        .product-table tr:hover td {
+            background-color: #fff8ef;
+        }
+
+        .estado-badge {
+            display: inline-block;
+            padding: 0.25rem 0.7rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #f0e3d0;
+            color: #7a5a3a;
+        }
+
+        .estado-badge.normal {
+            background: #d9e6cf;
+            color: #2f5e2a;
+        }
+
+        .estado-badge.bajo {
+            background: #ffe0b5;
+            color: #bd7f2a;
+        }
+
+        .estado-badge.critico {
+            background: #ffe0e0;
+            color: #bc3f2e;
+        }
+
+        .acciones {
+            display: flex;
+            gap: 0.7rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0.3rem 0.7rem;
+            border-radius: 30px;
+            transition: 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .btn-borrar {
+            background: #f5e4dc;
+            color: #b13e2d;
+        }
+
+        .btn-borrar:hover {
+            background: #eccbc1;
+        }
+
+        .btn-lista {
+            background: #e5e9df;
+            color: #4b6e3b;
+        }
+
+        .btn-lista:hover {
+            background: #d3ddc4;
+        }
+
+        .unidad-badge {
+            background: #e9e2d4;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-left: 0.3rem;
+            color: #6b4c2c;
+        }
+
+        footer {
+            background: #e2d9ce;
+            text-align: center;
+            padding: 0.8rem;
+            font-size: 0.7rem;
+            color: #5f4f3a;
+            border-top: 1px solid #cfc2b2;
+        }
+
+        @media (max-width: 750px) {
+            body { padding: 1rem; }
+            .content-pane { padding: 1.2rem; }
+            .form-section { padding: 1rem; }
+        }
+    </style>
 </head>
 <body>
     <!-- Pantalla de Login -->
@@ -25,8 +414,8 @@
             </div>
             <button class="btn-login" id="loginBtn">📦 Ingresar al inventario</button>
             <div id="errorMsg" class="error-msg"></div>
-            <div class="demo-creds">
-                Credenciales de prueba: <strong>admin / admin123</strong> | <strong>tornillo / taller</strong>
+            <div style="font-size: 0.7rem; text-align: center; margin-top: 1.2rem; color: #8b7a64;">
+                Credenciales de prueba: <strong>admin / admin123</strong>  |  <strong>tornillo / taller</strong>
             </div>
         </div>
     </div>
@@ -91,7 +480,7 @@
                         <button class="btn-add" id="agregarBtn">➕ Agregar producto</button>
                     </div>
                 </div>
-                <div class="help-text">
+                <div style="font-size: 0.7rem; margin-top: 0.8rem; color: #8b7a64; text-align: right;">
                     💡 Ejemplo: Cemento → 50 bultos, Tornillos → 5 cajas, Alambre → 30 metros
                 </div>
             </div>
@@ -115,6 +504,307 @@
         </div>
     </div>
 
-    <script src="main.js"></script>
+    <script>
+        // ---------- SISTEMA DE LOGIN (simulado con usuarios en memoria) ----------
+        // Usuarios válidos (en un caso real se validaría contra backend)
+        const VALID_USERS = [
+            { username: "admin", password: "admin123", displayName: "Administrador" },
+            { username: "tornillo", password: "taller", displayName: "Jorge (Bodega)" },
+            { username: "bodeguero", password: "inventario2026", displayName: "Carlos Almacén" }
+        ];
+
+        // clave para sessionStorage
+        const SESSION_KEY = "tornillo_feliz_session";
+
+        // Función para iniciar sesión
+        function login(username, password) {
+            const user = VALID_USERS.find(u => u.username === username && u.password === password);
+            if (user) {
+                const session = {
+                    loggedIn: true,
+                    username: user.username,
+                    displayName: user.displayName,
+                    loginTime: new Date().toISOString()
+                };
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+                return true;
+            }
+            return false;
+        }
+
+        // Verificar si hay sesión activa
+        function checkSession() {
+            const sessionData = sessionStorage.getItem(SESSION_KEY);
+            if (sessionData) {
+                try {
+                    const session = JSON.parse(sessionData);
+                    if (session.loggedIn === true) {
+                        return session;
+                    }
+                } catch(e) {}
+            }
+            return null;
+        }
+
+        // Cerrar sesión
+        function logout() {
+            sessionStorage.removeItem(SESSION_KEY);
+            showLoginScreen();
+        }
+
+        // Mostrar pantalla de login y ocultar inventario
+        function showLoginScreen() {
+            document.getElementById("loginContainer").style.display = "block";
+            document.getElementById("inventarioContainer").style.display = "none";
+            // limpiar campos de login
+            document.getElementById("usernameInput").value = "";
+            document.getElementById("passwordInput").value = "";
+            document.getElementById("errorMsg").style.display = "none";
+        }
+
+        // Mostrar ventana de inventario con datos del usuario
+        function showInventoryScreen(userSession) {
+            document.getElementById("loginContainer").style.display = "none";
+            document.getElementById("inventarioContainer").style.display = "block";
+            document.getElementById("currentUserSpan").innerText = userSession.displayName || userSession.username;
+            // cargar datos de inventario (productos)
+            loadProductosFromStorage();
+            renderInventario();
+        }
+
+        // ----- GESTIÓN DE PRODUCTOS (con localStorage persistente y datos iniciales) -----
+        let productos = [];
+
+        // Clave para guardar productos
+        const STORAGE_PRODUCTS_KEY = "tornillo_productos_v2";
+
+        // Unidad de medida helper
+        function getNombreUnidad(unidadKey) {
+            const mapa = {
+                'unidad': 'unidad',
+                'bulto': 'bulto',
+                'caja': 'caja',
+                'kilo': 'kg',
+                'metro': 'm',
+                'litro': 'L',
+                'docena': 'docena',
+                'pallet': 'pallet',
+                'galon': 'galón'
+            };
+            return mapa[unidadKey] || unidadKey;
+        }
+
+        function formatStockConUnidad(cantidad, unidadKey) {
+            let unidadTexto = getNombreUnidad(unidadKey);
+            if (cantidad !== 1) {
+                if (unidadKey === 'bulto') unidadTexto = 'bultos';
+                else if (unidadKey === 'caja') unidadTexto = 'cajas';
+                else if (unidadKey === 'kilo') unidadTexto = 'kg';
+                else if (unidadKey === 'metro') unidadTexto = 'metros';
+                else if (unidadKey === 'litro') unidadTexto = 'litros';
+                else if (unidadKey === 'docena') unidadTexto = 'docenas';
+                else if (unidadKey === 'pallet') unidadTexto = 'pallets';
+                else if (unidadKey === 'galon') unidadTexto = 'galones';
+                else if (unidadKey === 'unidad') unidadTexto = 'unidades';
+            } else {
+                if (unidadKey === 'kilo') unidadTexto = 'kg';
+                else if (unidadKey === 'metro') unidadTexto = 'metro';
+                else if (unidadKey === 'litro') unidadTexto = 'litro';
+            }
+            return `${cantidad} ${unidadTexto}`;
+        }
+
+        function getEstadoVisual(producto) {
+            let estadoBase = producto.estado;
+            let advertencia = "";
+            if (producto.stock < producto.stockMinimo) advertencia = " 🔻";
+            if (producto.stock === 0) advertencia = " ⚠️ SIN STOCK";
+            return estadoBase + advertencia;
+        }
+
+        function getEstadoClase(producto) {
+            if (producto.stock === 0) return "critico";
+            if (producto.stock < producto.stockMinimo) return "bajo";
+            return "normal";
+        }
+
+        function guardarProductosEnStorage() {
+            localStorage.setItem(STORAGE_PRODUCTS_KEY, JSON.stringify(productos));
+        }
+
+        function loadProductosFromStorage() {
+            const stored = localStorage.getItem(STORAGE_PRODUCTS_KEY);
+            if (stored) {
+                try {
+                    productos = JSON.parse(stored);
+                    if (!Array.isArray(productos)) productos = [];
+                    return;
+                } catch(e) { productos = []; }
+            }
+            // Datos iniciales por defecto con variedad de unidades (bulto, caja, metro, kilo)
+            productos = [
+                { codigo: "T00-001", nombre: "Destornillador", stock: 30, unidad: "unidad", precio: 8500, stockMinimo: 15, estado: "Normal" },
+                { codigo: "CEM-101", nombre: "Cemento gris", stock: 42, unidad: "bulto", precio: 18900, stockMinimo: 20, estado: "Normal" },
+                { codigo: "TOR-202", nombre: "Tornillos 1/2\"", stock: 8, unidad: "caja", precio: 45900, stockMinimo: 10, estado: "Lista Sede" },
+                { codigo: "VAR-009", nombre: "Varilla corrugada", stock: 150, unidad: "metro", precio: 3200, stockMinimo: 80, estado: "Normal" },
+                { codigo: "CAL-045", nombre: "Cal hidratada", stock: 12, unidad: "bulto", precio: 22500, stockMinimo: 5, estado: "Lista Sede" },
+                { codigo: "CLA-332", nombre: "Clavos 2\"", stock: 3, unidad: "caja", precio: 12700, stockMinimo: 5, estado: "Crítico" }
+            ];
+            guardarProductosEnStorage();
+        }
+
+        function renderInventario() {
+            const tbody = document.getElementById("tbodyInventario");
+            if (!tbody) return;
+            tbody.innerHTML = "";
+            if (productos.length === 0) {
+                const emptyRow = document.createElement("tr");
+                emptyRow.className = "empty-row";
+                emptyRow.innerHTML = `<td colspan="7">📭 No hay productos registrados. Agrega uno nuevo.</td>`;
+                tbody.appendChild(emptyRow);
+                document.getElementById("contadorProductos").innerText = `Total: 0 productos`;
+                return;
+            }
+
+            productos.forEach((prod, idx) => {
+                const row = document.createElement("tr");
+                const precioFormateado = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(prod.precio);
+                const stockConUnidad = formatStockConUnidad(prod.stock, prod.unidad);
+                let unidadMin = getNombreUnidad(prod.unidad);
+                if (prod.stockMinimo !== 1) {
+                    if (prod.unidad === 'bulto') unidadMin = 'bultos';
+                    else if (prod.unidad === 'caja') unidadMin = 'cajas';
+                    else if (prod.unidad === 'unidad') unidadMin = 'unidades';
+                    else if (prod.unidad === 'metro') unidadMin = 'metros';
+                    else if (prod.unidad === 'kilo') unidadMin = 'kg';
+                    else if (prod.unidad === 'litro') unidadMin = 'litros';
+                }
+                const stockMinMostrar = `${prod.stockMinimo} ${unidadMin}`;
+                const estadoTexto = getEstadoVisual(prod);
+                const claseEstado = getEstadoClase(prod);
+                row.innerHTML = `
+                    <td><strong>${escapeHtml(prod.codigo)}</strong></td>
+                    <td>${escapeHtml(prod.nombre)}</td>
+                    <td>${stockConUnidad} <span class="unidad-badge">${getNombreUnidad(prod.unidad)}</span></td>
+                    <td>${precioFormateado}</td>
+                    <td>${stockMinMostrar}</td>
+                    <td><span class="estado-badge ${claseEstado}">${escapeHtml(estadoTexto)}</span></td>
+                    <td class="acciones">
+                        <button class="btn-icon btn-borrar" data-index="${idx}">🗑️ Borrar</button>
+                        <button class="btn-icon btn-lista" data-index="${idx}">📋 Lista Sede</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            document.getElementById("contadorProductos").innerText = `Total: ${productos.length} productos`;
+
+            // Eventos dinámicos
+            document.querySelectorAll('.btn-borrar').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(btn.getAttribute('data-index'));
+                    if (!isNaN(idx)) borrarProducto(idx);
+                });
+            });
+            document.querySelectorAll('.btn-lista').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(btn.getAttribute('data-index'));
+                    if (!isNaN(idx)) marcarListaSede(idx);
+                });
+            });
+        }
+
+        function borrarProducto(index) {
+            if (index >= 0 && index < productos.length) {
+                productos.splice(index, 1);
+                guardarProductosEnStorage();
+                renderInventario();
+            }
+        }
+
+        function marcarListaSede(index) {
+            if (index >= 0 && index < productos.length) {
+                productos[index].estado = "Lista Sede";
+                guardarProductosEnStorage();
+                renderInventario();
+            }
+        }
+
+        function agregarProducto() {
+            const codigo = document.getElementById("codigoInput").value.trim();
+            const nombre = document.getElementById("nombreInput").value.trim();
+            const unidad = document.getElementById("unidadSelect").value;
+            let stock = parseInt(document.getElementById("stockInput").value, 10);
+            let precio = parseFloat(document.getElementById("precioInput").value);
+            let stockMinimo = parseInt(document.getElementById("stockMinInput").value, 10);
+            const estado = document.getElementById("estadoSelect").value;
+
+            if (!codigo) { alert("❌ Código obligatorio"); return; }
+            if (!nombre) { alert("❌ Nombre obligatorio"); return; }
+            if (isNaN(stock) || stock < 0) stock = 0;
+            if (isNaN(precio) || precio < 0) precio = 0;
+            if (isNaN(stockMinimo) || stockMinimo < 0) stockMinimo = 0;
+
+            if (productos.some(p => p.codigo.toLowerCase() === codigo.toLowerCase())) {
+                alert(`⚠️ Ya existe producto con código ${codigo}`);
+                return;
+            }
+
+            productos.push({
+                codigo, nombre, stock, unidad, precio: Math.round(precio), stockMinimo, estado
+            });
+            guardarProductosEnStorage();
+            renderInventario();
+
+            // limpiar campos
+            document.getElementById("codigoInput").value = "";
+            document.getElementById("nombreInput").value = "";
+            document.getElementById("stockInput").value = "0";
+            document.getElementById("precioInput").value = "0";
+            document.getElementById("stockMinInput").value = "10";
+            document.getElementById("estadoSelect").value = "Normal";
+        }
+
+        function escapeHtml(str) {
+            if (!str) return "";
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Eventos login
+        document.getElementById("loginBtn").addEventListener("click", () => {
+            const username = document.getElementById("usernameInput").value.trim();
+            const password = document.getElementById("passwordInput").value;
+            const errorDiv = document.getElementById("errorMsg");
+            if (login(username, password)) {
+                errorDiv.style.display = "none";
+                const session = checkSession();
+                if (session) showInventoryScreen(session);
+            } else {
+                errorDiv.innerText = "❌ Usuario o contraseña incorrectos. Intenta nuevamente.";
+                errorDiv.style.display = "block";
+            }
+        });
+
+        document.getElementById("logoutBtn").addEventListener("click", logout);
+        document.getElementById("agregarBtn").addEventListener("click", agregarProducto);
+        // Enter en login
+        const passInput = document.getElementById("passwordInput");
+        const userInput = document.getElementById("usernameInput");
+        const doLogin = () => document.getElementById("loginBtn").click();
+        passInput.addEventListener("keypress", e => { if (e.key === "Enter") doLogin(); });
+        userInput.addEventListener("keypress", e => { if (e.key === "Enter") doLogin(); });
+
+        // Inicialización: verificar sesión al cargar
+        const activeSession = checkSession();
+        if (activeSession) {
+            showInventoryScreen(activeSession);
+        } else {
+            showLoginScreen();
+        }
+    </script>
 </body>
 </html>
