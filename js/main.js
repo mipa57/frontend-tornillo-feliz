@@ -1,240 +1,269 @@
-// ============================================
-// CONFIGURACIÓN
-// ============================================
-const API_URL = 'http://localhost:8080/api';
+// ==================== SISTEMA DE LOGIN ====================
+const VALID_USERS = [
+    { username: "admin", password: "admin123", displayName: "Administrador" },
+    { username: "tornillo", password: "taller", displayName: "Jorge (Bodega)" },
+    { username: "bodeguero", password: "inventario2026", displayName: "Carlos Almacén" }
+];
 
-// ============================================
-// ELEMENTOS DEL DOM
-// ============================================
-const formProducto = document.getElementById('form-producto');
-const btnCancelar = document.getElementById('btn-cancelar');
-const tbody = document.getElementById('tabla-productos');
+const SESSION_KEY = "tornillo_feliz_session";
+const STORAGE_PRODUCTS_KEY = "tornillo_productos_v2";
 
-// ============================================
-// INICIALIZACIÓN
-// ============================================
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('=== EL TORNILLO FELIZ ===');
-    cargarProductos();
-    
-    if (formProducto) {
-        formProducto.addEventListener('submit', guardarProducto);
+// ==================== HELPERS DE UNIDADES ====================
+function getNombreUnidad(unidadKey) {
+    const mapa = {
+        'unidad': 'unidad', 'bulto': 'bulto', 'caja': 'caja',
+        'kilo': 'kg', 'metro': 'm', 'litro': 'L',
+        'docena': 'docena', 'pallet': 'pallet', 'galon': 'galón'
+    };
+    return mapa[unidadKey] || unidadKey;
+}
+
+function formatStockConUnidad(cantidad, unidadKey) {
+    let unidadTexto = getNombreUnidad(unidadKey);
+    if (cantidad !== 1) {
+        if (unidadKey === 'bulto') unidadTexto = 'bultos';
+        else if (unidadKey === 'caja') unidadTexto = 'cajas';
+        else if (unidadKey === 'kilo') unidadTexto = 'kg';
+        else if (unidadKey === 'metro') unidadTexto = 'metros';
+        else if (unidadKey === 'litro') unidadTexto = 'litros';
+        else if (unidadKey === 'docena') unidadTexto = 'docenas';
+        else if (unidadKey === 'pallet') unidadTexto = 'pallets';
+        else if (unidadKey === 'galon') unidadTexto = 'galones';
+        else if (unidadKey === 'unidad') unidadTexto = 'unidades';
+    } else {
+        if (unidadKey === 'kilo') unidadTexto = 'kg';
+        else if (unidadKey === 'metro') unidadTexto = 'metro';
+        else if (unidadKey === 'litro') unidadTexto = 'litro';
     }
-    if (btnCancelar) {
-        btnCancelar.addEventListener('click', limpiarFormulario);
+    return `${cantidad} ${unidadTexto}`;
+}
+
+function getEstadoVisual(producto) {
+    let estadoBase = producto.estado;
+    let advertencia = "";
+    if (producto.stock < producto.stockMinimo) advertencia = " 🔻";
+    if (producto.stock === 0) advertencia = " ⚠️ SIN STOCK";
+    return estadoBase + advertencia;
+}
+
+function getEstadoClase(producto) {
+    if (producto.stock === 0) return "critico";
+    if (producto.stock < producto.stockMinimo) return "bajo";
+    return "normal";
+}
+
+function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+// ==================== GESTIÓN DE PRODUCTOS ====================
+let productos = [];
+
+function guardarProductosEnStorage() {
+    localStorage.setItem(STORAGE_PRODUCTS_KEY, JSON.stringify(productos));
+}
+
+function loadProductosFromStorage() {
+    const stored = localStorage.getItem(STORAGE_PRODUCTS_KEY);
+    if (stored) {
+        try {
+            productos = JSON.parse(stored);
+            if (!Array.isArray(productos)) productos = [];
+            return;
+        } catch(e) { productos = []; }
+    }
+    // Datos iniciales
+    productos = [
+        { codigo: "T00-001", nombre: "Destornillador", stock: 30, unidad: "unidad", precio: 8500, stockMinimo: 15, estado: "Normal" },
+        { codigo: "CEM-101", nombre: "Cemento gris", stock: 42, unidad: "bulto", precio: 18900, stockMinimo: 20, estado: "Normal" },
+        { codigo: "TOR-202", nombre: "Tornillos 1/2\"", stock: 8, unidad: "caja", precio: 45900, stockMinimo: 10, estado: "Lista Sede" },
+        { codigo: "VAR-009", nombre: "Varilla corrugada", stock: 150, unidad: "metro", precio: 3200, stockMinimo: 80, estado: "Normal" },
+        { codigo: "CAL-045", nombre: "Cal hidratada", stock: 12, unidad: "bulto", precio: 22500, stockMinimo: 5, estado: "Lista Sede" },
+        { codigo: "CLA-332", nombre: "Clavos 2\"", stock: 3, unidad: "caja", precio: 12700, stockMinimo: 5, estado: "Crítico" }
+    ];
+    guardarProductosEnStorage();
+}
+
+function renderInventario() {
+    const tbody = document.getElementById("tbodyInventario");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    
+    if (productos.length === 0) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="7">📭 No hay productos registrados. Agrega uno nuevo.</td></tr>`;
+        document.getElementById("contadorProductos").innerText = `Total: 0 productos`;
+        return;
+    }
+
+    productos.forEach((prod, idx) => {
+        const precioFormateado = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(prod.precio);
+        const stockConUnidad = formatStockConUnidad(prod.stock, prod.unidad);
+        
+        let unidadMin = getNombreUnidad(prod.unidad);
+        if (prod.stockMinimo !== 1) {
+            if (prod.unidad === 'bulto') unidadMin = 'bultos';
+            else if (prod.unidad === 'caja') unidadMin = 'cajas';
+            else if (prod.unidad === 'unidad') unidadMin = 'unidades';
+            else if (prod.unidad === 'metro') unidadMin = 'metros';
+            else if (prod.unidad === 'kilo') unidadMin = 'kg';
+            else if (prod.unidad === 'litro') unidadMin = 'litros';
+        }
+        const stockMinMostrar = `${prod.stockMinimo} ${unidadMin}`;
+        const estadoTexto = getEstadoVisual(prod);
+        const claseEstado = getEstadoClase(prod);
+        
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td><strong>${escapeHtml(prod.codigo)}</strong></td>
+            <td>${escapeHtml(prod.nombre)}</td>
+            <td>${stockConUnidad} <span class="unidad-badge">${getNombreUnidad(prod.unidad)}</span></td>
+            <td>${precioFormateado}</td>
+            <td>${stockMinMostrar}</td>
+            <td><span class="estado-badge ${claseEstado}">${escapeHtml(estadoTexto)}</span></td>
+            <td class="acciones">
+                <button class="btn-icon btn-borrar" data-index="${idx}">🗑️ Borrar</button>
+                <button class="btn-icon btn-lista" data-index="${idx}">📋 Lista Sede</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    document.getElementById("contadorProductos").innerText = `Total: ${productos.length} productos`;
+
+    // Eventos botones
+    document.querySelectorAll('.btn-borrar').forEach(btn => {
+        btn.addEventListener('click', () => borrarProducto(parseInt(btn.dataset.index)));
+    });
+    document.querySelectorAll('.btn-lista').forEach(btn => {
+        btn.addEventListener('click', () => marcarListaSede(parseInt(btn.dataset.index)));
+    });
+}
+
+function borrarProducto(index) {
+    if (index >= 0 && index < productos.length) {
+        productos.splice(index, 1);
+        guardarProductosEnStorage();
+        renderInventario();
+    }
+}
+
+function marcarListaSede(index) {
+    if (index >= 0 && index < productos.length) {
+        productos[index].estado = "Lista Sede";
+        guardarProductosEnStorage();
+        renderInventario();
+    }
+}
+
+function agregarProducto() {
+    const codigo = document.getElementById("codigoInput").value.trim();
+    const nombre = document.getElementById("nombreInput").value.trim();
+    const unidad = document.getElementById("unidadSelect").value;
+    let stock = parseInt(document.getElementById("stockInput").value, 10);
+    let precio = parseFloat(document.getElementById("precioInput").value);
+    let stockMinimo = parseInt(document.getElementById("stockMinInput").value, 10);
+    const estado = document.getElementById("estadoSelect").value;
+
+    if (!codigo) { alert("❌ Código obligatorio"); return; }
+    if (!nombre) { alert("❌ Nombre obligatorio"); return; }
+    if (isNaN(stock) || stock < 0) stock = 0;
+    if (isNaN(precio) || precio < 0) precio = 0;
+    if (isNaN(stockMinimo) || stockMinimo < 0) stockMinimo = 0;
+
+    if (productos.some(p => p.codigo.toLowerCase() === codigo.toLowerCase())) {
+        alert(`⚠️ Ya existe producto con código ${codigo}`);
+        return;
+    }
+
+    productos.push({
+        codigo, nombre, stock, unidad, precio: Math.round(precio), stockMinimo, estado
+    });
+    guardarProductosEnStorage();
+    renderInventario();
+
+    // Limpiar campos
+    document.getElementById("codigoInput").value = "";
+    document.getElementById("nombreInput").value = "";
+    document.getElementById("stockInput").value = "0";
+    document.getElementById("precioInput").value = "0";
+    document.getElementById("stockMinInput").value = "10";
+    document.getElementById("estadoSelect").value = "Normal";
+}
+
+// ==================== SISTEMA DE LOGIN ====================
+function login(username, password) {
+    const user = VALID_USERS.find(u => u.username === username && u.password === password);
+    if (user) {
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify({ loggedIn: true, username: user.username, displayName: user.displayName }));
+        return true;
+    }
+    return false;
+}
+
+function checkSession() {
+    const sessionData = sessionStorage.getItem(SESSION_KEY);
+    if (sessionData) {
+        try {
+            const session = JSON.parse(sessionData);
+            if (session.loggedIn) return session;
+        } catch(e) {}
+    }
+    return null;
+}
+
+function logout() {
+    sessionStorage.removeItem(SESSION_KEY);
+    showLoginScreen();
+}
+
+function showLoginScreen() {
+    document.getElementById("loginContainer").style.display = "block";
+    document.getElementById("inventarioContainer").style.display = "none";
+    document.getElementById("usernameInput").value = "";
+    document.getElementById("passwordInput").value = "";
+    document.getElementById("errorMsg").style.display = "none";
+}
+
+function showInventoryScreen(userSession) {
+    document.getElementById("loginContainer").style.display = "none";
+    document.getElementById("inventarioContainer").style.display = "block";
+    document.getElementById("currentUserSpan").innerText = userSession.displayName || userSession.username;
+    loadProductosFromStorage();
+    renderInventario();
+}
+
+// ==================== EVENTOS E INICIALIZACIÓN ====================
+document.getElementById("loginBtn").addEventListener("click", () => {
+    const username = document.getElementById("usernameInput").value.trim();
+    const password = document.getElementById("passwordInput").value;
+    const errorDiv = document.getElementById("errorMsg");
+    if (login(username, password)) {
+        errorDiv.style.display = "none";
+        showInventoryScreen(checkSession());
+    } else {
+        errorDiv.innerText = "❌ Usuario o contraseña incorrectos. Intenta nuevamente.";
+        errorDiv.style.display = "block";
     }
 });
 
-// ============================================
-// CARGAR PRODUCTOS
-// ============================================
-async function cargarProductos() {
-    try {
-        console.log('🔄 Cargando productos...');
-        
-        const response = await fetch(`${API_URL}/productos`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const productos = await response.json();
-        console.log('📦 Datos del backend:', productos);
-        
-        mostrarProductos(productos);
-        
-    } catch (error) {
-        console.error('❌ Error:', error);
-        mostrarErrorEnTabla(`Error: ${error.message}`);
-    }
-}
+document.getElementById("logoutBtn").addEventListener("click", logout);
+document.getElementById("agregarBtn").addEventListener("click", agregarProducto);
 
-// ============================================
-// MOSTRAR PRODUCTOS
-// ============================================
-function mostrarProductos(productos) {
-    if (!tbody) return;
-    
-    if (productos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="loading">No hay productos registrados</td></tr>';
-        return;
-    }
-    
-    tbody.innerHTML = productos.map(producto => {
-        const precio = producto.precioVenta || 0;
-        const stockMin = producto.stockMinimo || 0;
-        const cantidad = producto.cantidad || 0;
-        const bajoStock = producto.bajoStock || false;
-        
-        const estado = (bajoStock || cantidad <= stockMin) ? 'Stock Bajo' : 'Normal';
-        const estadoClass = (bajoStock || cantidad <= stockMin) ? 'badge-low' : 'badge-normal';
-        const precioFormateado = precio > 0 ? precio.toLocaleString('es-CL') : '0';
-        
-        return `
-            <tr>
-                <td><span class="code">${producto.codigo || 'N/A'}</span></td>
-                <td><strong>${producto.nombre || 'N/A'}</strong></td>
-                <td>${cantidad}</td>
-                <td class="price">$${precioFormateado}</td>
-                <td>${stockMin}</td>
-                <td><span class="badge ${estadoClass}">${estado}</span></td>
-                <td>
-                    <button class="action-btn action-edit" onclick="editarProducto('${producto.id}')">Editar</button>
-                    <button class="action-btn action-delete" onclick="eliminarProducto('${producto.id}')">Eliminar</button>
-                </td>
-            </tr>
-        `;
-    }).join('');
-}
+// Enter en login
+const doLogin = () => document.getElementById("loginBtn").click();
+document.getElementById("passwordInput").addEventListener("keypress", e => { if (e.key === "Enter") doLogin(); });
+document.getElementById("usernameInput").addEventListener("keypress", e => { if (e.key === "Enter") doLogin(); });
 
-// ============================================
-// GUARDAR PRODUCTO
-// ============================================
-async function guardarProducto(event) {
-    event.preventDefault();
-    
-    const codigo = document.getElementById('codigo').value.trim();
-    const nombre = document.getElementById('nombre').value.trim();
-    const cantidad = parseInt(document.getElementById('cantidad').value);
-    const precio = parseFloat(document.getElementById('precio').value);
-    const stockMinimo = parseInt(document.getElementById('stock-minimo').value);
-    
-    if (!codigo || !nombre) {
-        alert('⚠️ Código y nombre son obligatorios');
-        return;
-    }
-    
-    const producto = {
-        codigo: codigo,
-        nombre: nombre,
-        cantidad: cantidad,
-        precioVenta: precio,
-        stockMinimo: stockMinimo,
-        fechaRegistro: new Date().toISOString(),
-        bajoStock: cantidad <= stockMinimo
-    };
-    
-    try {
-        const response = await fetch(`${API_URL}/productos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(producto)
-        });
-        
-        if (!response.ok) throw new Error('Error al guardar');
-        
-        alert(`✅ Producto "${nombre}" guardado con éxito! Precio: $${precio}`);
-        limpiarFormulario();
-        cargarProductos();
-        
-    } catch (error) {
-        console.error('❌ Error:', error);
-        alert('❌ Error al guardar: ' + error.message);
-    }
-}
-
-// ============================================
-// ELIMINAR PRODUCTO
-// ============================================
-window.eliminarProducto = async function(id) {
-    if (!id) {
-        alert('❌ ID del producto no encontrado');
-        return;
-    }
-    
-    if (!confirm('¿Estás seguro de eliminar este producto?')) return;
-    
-    try {
-        const response = await fetch(`${API_URL}/productos/${id}`, {
-            method: 'DELETE'
-        });
-        
-        if (!response.ok) throw new Error('Error al eliminar');
-        
-        alert('✅ Producto eliminado exitosamente');
-        cargarProductos();
-        
-    } catch (error) {
-        console.error('❌ Error:', error);
-        alert('❌ Error al eliminar: ' + error.message);
-    }
-};
-
-// ============================================
-// EDITAR PRODUCTO (DELETE + POST)
-// ============================================
-window.editarProducto = async function(id) {
-    if (!id) {
-        alert('❌ ID del producto no encontrado');
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_URL}/productos/${id}`);
-        if (!response.ok) throw new Error('Producto no encontrado');
-        
-        const producto = await response.json();
-        
-        const nuevoNombre = prompt('Nuevo nombre:', producto.nombre);
-        if (nuevoNombre === null) return;
-        
-        const nuevaCantidad = prompt('Nueva cantidad:', producto.cantidad);
-        if (nuevaCantidad === null) return;
-        
-        const nuevoPrecio = prompt('Nuevo precio:', producto.precioVenta);
-        if (nuevoPrecio === null) return;
-        
-        const nuevoStock = prompt('Nuevo stock mínimo:', producto.stockMinimo);
-        if (nuevoStock === null) return;
-        
-        const cantidadNum = parseInt(nuevaCantidad);
-        const precioNum = parseFloat(nuevoPrecio);
-        const stockNum = parseInt(nuevoStock);
-        
-        // Eliminar viejo
-        await fetch(`${API_URL}/productos/${id}`, { method: 'DELETE' });
-        
-        // Crear nuevo
-        const nuevoProducto = {
-            codigo: producto.codigo,
-            nombre: nuevoNombre,
-            cantidad: cantidadNum,
-            precioVenta: precioNum,
-            stockMinimo: stockNum,
-            fechaRegistro: new Date().toISOString(),
-            bajoStock: cantidadNum <= stockNum
-        };
-        
-        const postResponse = await fetch(`${API_URL}/productos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(nuevoProducto)
-        });
-        
-        if (!postResponse.ok) throw new Error('Error al crear producto');
-        
-        alert('✅ Producto actualizado exitosamente');
-        cargarProductos();
-        
-    } catch (error) {
-        console.error('❌ Error:', error);
-        alert('❌ Error al editar: ' + error.message);
-    }
-};
-
-// ============================================
-// LIMPIAR FORMULARIO
-// ============================================
-function limpiarFormulario() {
-    document.getElementById('codigo').value = '';
-    document.getElementById('nombre').value = '';
-    document.getElementById('cantidad').value = '0';
-    document.getElementById('precio').value = '0';
-    document.getElementById('stock-minimo').value = '5';
-}
-
-function mostrarErrorEnTabla(mensaje) {
-    if (tbody) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px; color: red;">${mensaje}</td></tr>`;
-    }
+// Inicializar
+const activeSession = checkSession();
+if (activeSession) {
+    showInventoryScreen(activeSession);
+} else {
+    showLoginScreen();
 }
